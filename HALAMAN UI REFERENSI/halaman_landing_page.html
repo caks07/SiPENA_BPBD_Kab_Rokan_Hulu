@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIPENA - BPBD Kabupaten Rokan Hulu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f9f9f9",
+                        "on-primary-fixed": "#2c1600",
+                        "tertiary-fixed-dim": "#c5c6ce",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#5c3400",
+                        "surface-container": "#eeeeee",
+                        "on-secondary-fixed": "#181b27",
+                        "on-background": "#1a1c1c",
+                        "tertiary-fixed": "#e2e2eb",
+                        "outline": "#877362",
+                        "inverse-surface": "#2f3131",
+                        "tertiary-container": "#a8a8b1",
+                        "secondary-fixed-dim": "#c4c5d6",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9f9",
+                        "tertiary": "#5d5e65",
+                        "primary-fixed-dim": "#ffb86e",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#dac2ae",
+                        "on-tertiary-container": "#3c3d44",
+                        "surface-dim": "#dadada",
+                        "secondary": "#5b5e6c",
+                        "on-tertiary-fixed": "#191b22",
+                        "primary-fixed": "#ffdcbd",
+                        "on-secondary-container": "#5f6270",
+                        "surface-container-low": "#f3f3f3",
+                        "on-surface-variant": "#544434",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#434654",
+                        "surface-variant": "#e2e2e2",
+                        "surface-container-highest": "#e2e2e2",
+                        "surface-container-high": "#e8e8e8",
+                        "primary-container": "#f39200",
+                        "on-primary-fixed-variant": "#693c00",
+                        "secondary-container": "#dddfef",
+                        "primary": "#8a5100",
+                        "surface-tint": "#8a5100",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#45464e",
+                        "secondary-fixed": "#e0e1f2",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-primary": "#ffb86e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "navbar-height": "64px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "panel-width": "360px",
+                        "xl": "32px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "data-mono": ["monospace"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-xl": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "data-mono": ["13px", {"lineHeight": "1.2", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(28, 31, 43, 0.4), rgba(28, 31, 43, 0.9));
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        }
+    </style>
+</head>
+<body class="bg-[#F4F5F7] font-body-md text-on-surface flex flex-col min-h-screen">
+<!-- Top Navigation Bar -->
+<nav class="flex justify-between items-center px-6 py-4 w-full fixed top-0 bg-[#1C1F2B]/90 backdrop-blur-[12px] border-b border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.15)] z-50 font-['Inter'] text-sm font-semibold tracking-wide">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-[#F39200] rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="text-2xl font-black text-white tracking-tighter">SIPENA</span>
+</div>
+<div class="flex items-center">
+<button class="bg-[#F39200] text-white px-6 py-2 rounded-lg font-bold hover:bg-[#d98300] active:scale-95 duration-200 transition-all shadow-lg shadow-[#F39200]/20">
+            Login
+        </button>
+</div>
+</nav>
+<main class="flex-grow pt-0">
+<!-- Hero Section -->
+<section class="relative h-[512px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="atmospheric aerial view of Rokan Hulu tropical landscape during a stormy sunset with heavy grey clouds and dramatic lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCDTNa4V9uX_wNLVeRIemFg3mmQL2Wdsxjbd_stwN5twwMW7ugmDHtaOHV6EDBqfLP3uHEmCZL8daEBaerm_9W0l0xnZ7ghExtGjfh53Pl0CdkukmupC_CiqfF_1aG7eEBHJXAU3uN2jvMuW5VIZF9E8s7fgMmmCX4f0uumqoWNVIwGQPqUQHx6JsmFiP5Pf3t9RnD9KTiHXpk6g_NSbA_W-vX35jK_yAE48aXXbkOBJhnyaHckcpbd8D7HJjVRsDRR388YSBU0u2He');"></div>
+<div class="absolute inset-0 hero-overlay"></div>
+<div class="relative z-10 text-center px-4 max-w-4xl">
+<h1 class="font-headline-xl text-white mb-4 tracking-tight drop-shadow-lg uppercase">
+                Laporan Cepat Kejadian Bencana Kabupaten Rokan Hulu
+            </h1>
+<p class="font-headline-md text-white/80 font-light tracking-wide">
+                Sistem Pelaporan dan Monitoring Bencana Terintegrasi
+            </p>
+</div>
+</section>
+<!-- Disaster Grid Section -->
+<section class="max-w-7xl mx-auto px-6 py-20">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Banjir - Muted Deep Blue -->
+<div class="relative group bg-[#43658B] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="tsunami">tsunami</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Banjir</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Laporkan kejadian luapan air sungai atau genangan tinggi di wilayah Anda.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#43658B] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Banjir Bandang - Muted Indigo -->
+<div class="relative group bg-[#3B426E] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="flood">flood</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Banjir Bandang</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Laporan cepat aliran air deras pegunungan yang membawa material lumpur.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#3B426E] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Tanah Longsor - Muted Terra Cotta -->
+<div class="relative group bg-[#8D624E] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="landslide">landslide</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Tanah Longsor</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Kejadian pergerakan tanah atau tebing yang membahayakan pemukiman/jalan.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#8D624E] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Cuaca Ekstrim - Slate Teal -->
+<div class="relative group bg-[#4E5B6E] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="cyclone">cyclone</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Cuaca Ekstrim</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Angin kencang, puting beliung, atau hujan badai yang merusak infrastruktur.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#4E5B6E] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Kekeringan - Muted Gold/Ochre -->
+<div class="relative group bg-[#B08933] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="wb_sunny">wb_sunny</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Kekeringan</h3>
+<p class="text-white/80 font-body-md mb-8 leading-relaxed">Laporan krisis air bersih atau kekeringan lahan pertanian di wilayah Anda.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#B08933] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Karhutla - Muted Crimson -->
+<div class="relative group bg-[#A64444] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="local_fire_department">local_fire_department</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Kebakaran Hutan</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Laporan titik api (hotspot) atau kejadian kebakaran lahan dan hutan.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#A64444] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Epidemi - Muted Purple -->
+<div class="relative group bg-[#6E5B8E] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="coronavirus">coronavirus</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Epidemi Wabah</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Laporan penyebaran penyakit menular atau wabah kesehatan masyarakat.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#6E5B8E] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Gempa - Muted Orange -->
+<div class="relative group bg-[#BC6C25] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="volcano">volcano</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Gempa Bumi</h3>
+<p class="text-white/80 font-body-md mb-8 leading-relaxed">Informasi getaran gempa bumi dan laporan kerusakan struktur bangunan.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#BC6C25] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+<!-- Konflik - Muted Dark Slate -->
+<div class="relative group bg-[#2C3E50] rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/10">
+<div class="absolute inset-0 card-gradient pointer-events-none"></div>
+<div class="p-10 flex flex-col items-center text-center flex-grow relative z-10">
+<div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20 shadow-inner">
+<span class="material-symbols-outlined text-4xl" data-icon="groups">groups</span>
+</div>
+<h3 class="font-headline-md mb-3 text-white">Konflik Sosial</h3>
+<p class="text-white/70 font-body-md mb-8 leading-relaxed">Laporan gangguan keamanan atau konflik sosial antar kelompok masyarakat.</p>
+<button class="mt-auto w-full py-4 bg-white text-[#2C3E50] font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg">Laporkan di sini!</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#1C1F2B] border-t border-white/10 flex flex-col md:flex-row justify-between items-center px-12 py-16 w-full mt-auto font-['Inter'] text-xs font-medium text-slate-400">
+<div class="mb-8 md:mb-0">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 bg-[#F39200] rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-lg" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="text-xl font-black text-white tracking-tighter">SIPENA</span>
+</div>
+<p class="max-w-md leading-relaxed">© 2024 BPBD Kabupaten Rokan Hulu. <br/>Sistem Informasi Peringatan Dini &amp; Laporan Bencana Terpadu.</p>
+</div>
+<div class="flex flex-wrap gap-x-12 gap-y-4 justify-center md:justify-end">
+<a class="hover:text-[#F39200] transition-colors" href="#">Kebijakan Privasi</a>
+<a class="hover:text-[#F39200] transition-colors" href="#">Kontak Darurat</a>
+<a class="hover:text-[#F39200] transition-colors" href="#">Peta Situs</a>
+</div>
+</footer>
+<!-- Login Modal Overlay (Hidden) -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md hidden">
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+<div class="bg-[#1C1F2B] p-8 text-center">
+<span class="text-2xl font-black text-white tracking-tighter uppercase">Sipena Login</span>
+<p class="text-white/60 text-sm mt-2">Silakan masuk untuk mengakses dasbor pelaporan</p>
+</div>
+<div class="p-10">
+<form class="space-y-6">
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Username</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" data-icon="person">person</span>
+<input class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F39200] focus:border-transparent outline-none transition-all" placeholder="Masukkan username" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" data-icon="lock">lock</span>
+<input class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F39200] focus:border-transparent outline-none transition-all" placeholder="Masukkan password" type="password"/>
+</div>
+</div>
+<button class="w-full py-4 bg-[#F39200] text-white font-bold rounded-xl hover:bg-[#d98300] transition-all shadow-xl shadow-[#F39200]/20 active:scale-95" type="submit">LOGIN</button>
+<div class="text-center">
+<a class="text-sm font-medium text-slate-400 hover:text-[#F39200]" href="#">Lupa kata sandi?</a>
+</div>
+</form>
+</div>
+<button class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</body></html>

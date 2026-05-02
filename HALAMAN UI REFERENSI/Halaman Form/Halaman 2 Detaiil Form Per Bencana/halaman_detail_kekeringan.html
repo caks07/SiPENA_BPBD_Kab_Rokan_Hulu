@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#ffb86e",
+                        "on-secondary-container": "#5f6270",
+                        "tertiary-fixed-dim": "#c5c6ce",
+                        "on-tertiary-fixed": "#191b22",
+                        "inverse-on-surface": "#f1f1f1",
+                        "surface-container-high": "#e8e8e8",
+                        "primary-fixed": "#ffdcbd",
+                        "primary": "#8a5100",
+                        "on-background": "#1a1c1c",
+                        "on-surface-variant": "#544434",
+                        "surface-bright": "#f9f9f9",
+                        "tertiary-fixed": "#e2e2eb",
+                        "on-surface": "#1a1c1c",
+                        "surface-tint": "#8a5100",
+                        "surface-container-low": "#f3f3f3",
+                        "secondary": "#5b5e6c",
+                        "background": "#f9f9f9",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#2c1600",
+                        "surface-container": "#eeeeee",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-secondary-fixed": "#181b27",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#45464e",
+                        "on-tertiary-container": "#3c3d44",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#693c00",
+                        "error": "#ba1a1a",
+                        "primary-container": "#f39200",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#5c3400",
+                        "inverse-primary": "#ffb86e",
+                        "tertiary-container": "#a8a8b1",
+                        "outline": "#877362",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#dac2ae",
+                        "inverse-surface": "#2f3131",
+                        "tertiary": "#5d5e65",
+                        "secondary-fixed": "#e0e1f2",
+                        "on-secondary-fixed-variant": "#434654",
+                        "surface-dim": "#dadada",
+                        "secondary-fixed-dim": "#c4c5d6",
+                        "secondary-container": "#dddfef",
+                        "surface": "#f9f9f9",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e2e2e2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "unit": "4px",
+                        "navbar-height": "64px",
+                        "panel-width": "360px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "data-mono": ["monospace"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "data-mono": ["13px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "label-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-xl": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .radio-card:checked + label { border-color: #f39200; background-color: #fff9f0; }
+        .radio-card:checked + label .radio-circle { border-color: #f39200; border-width: 5px; }
+        .checkbox-card:checked + label { border-color: #f39200; background-color: #fff9f0; }
+        .checkbox-card:checked + label .checkbox-square { background-color: #f39200; border-color: #f39200; }
+    </style>
+</head>
+<body class="bg-surface-container-lowest font-body-md text-on-surface min-h-screen pb-32">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#1C1F2B]/85 backdrop-blur-md border-b border-white/10 shadow-xl font-['Inter'] tracking-tight antialiased">
+<div class="flex items-center gap-4">
+<span class="text-xl font-black text-white uppercase tracking-widest">SIPENA BPBD</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-slate-300 hover:text-orange-400 transition-colors duration-200 cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-slate-300 hover:text-orange-400 transition-colors duration-200 cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- Content Canvas -->
+<main class="pt-24 px-4 flex justify-center">
+<div class="w-full max-w-[700px]">
+<!-- Progress Header -->
+<div class="mb-8 text-center">
+<div class="inline-flex items-center justify-center bg-primary-container/10 text-primary-container px-4 py-1 rounded-full mb-4">
+<span class="text-label-bold font-label-bold">LANGKAH 2 DARI 4</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface">Laporan Dampak Kekeringan</h1>
+<p class="text-body-md text-on-secondary-container mt-2">Mohon lengkapi detail informasi mengenai kondisi kekeringan di wilayah Anda.</p>
+</div>
+<!-- Form Card -->
+<div class="bg-white rounded-xl shadow-lg border border-outline-variant overflow-hidden">
+<div class="h-2 bg-primary-container"></div>
+<form class="p-6 md:p-8 space-y-8">
+<!-- Section 1: Sektor Terdampak -->
+<section class="space-y-4">
+<label class="text-headline-md font-headline-md flex items-center gap-2">
+                            Sektor Yang Paling Terdampak
+                            <span class="text-error text-sm">*</span>
+</label>
+<div class="grid grid-cols-1 gap-3">
+<input class="hidden radio-card" id="sektor_rt" name="sektor" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sektor_rt">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Rumah Tangga</span>
+</label>
+<input class="hidden radio-card" id="sektor_pt" name="sektor" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sektor_pt">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Pertanian / Perkebunan</span>
+</label>
+<input class="hidden radio-card" id="sektor_tr" name="sektor" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sektor_tr">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Peternakan</span>
+</label>
+<input class="hidden radio-card" id="sektor_fu" name="sektor" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sektor_fu">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Sanitasi Fasilitas Umum</span>
+</label>
+</div>
+</section>
+<!-- Section 2: Kondisi Sumber Air -->
+<section class="space-y-4">
+<label class="text-headline-md font-headline-md">Kondisi Sumber Air Saat Ini</label>
+<div class="grid grid-cols-1 gap-3">
+<input class="hidden radio-card" id="sa_total" name="sumber_air" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sa_total">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Mengering Total</span>
+</label>
+<input class="hidden radio-card" id="sa_drastis" name="sumber_air" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sa_drastis">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Debit Air Menurun Drastis</span>
+</label>
+<input class="hidden radio-card" id="sa_keruh" name="sumber_air" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sa_keruh">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Masih Mengalir/Tersedia namun mulai keruh</span>
+</label>
+<input class="hidden radio-card" id="sa_jauh" name="sumber_air" type="radio"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors" for="sa_jauh">
+<div class="radio-circle w-5 h-5 rounded-full border-2 border-outline flex-shrink-0"></div>
+<span class="font-medium">Jarak ke sumber air sangat jauh (&gt; 1 km)</span>
+</label>
+</div>
+</section>
+<!-- Section 3 & 4: Numerical Inputs -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-4">
+<label class="text-headline-md font-headline-md">Estimasi Luas Lahan</label>
+<div class="relative">
+<input class="w-full h-12 px-4 pr-20 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none bg-surface-container-lowest" placeholder="0" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-secondary-container font-medium">hektar</span>
+</div>
+</div>
+<div class="space-y-4">
+<label class="text-headline-md font-headline-md">Jumlah KK Terdampak</label>
+<div class="relative">
+<input class="w-full h-12 px-4 pr-16 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none bg-surface-container-lowest" placeholder="0" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-secondary-container font-medium">KK</span>
+</div>
+</div>
+</div>
+<!-- Section 5: Durasi (Grid) -->
+<section class="space-y-4">
+<label class="text-headline-md font-headline-md">Durasi Kekeringan</label>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<input class="hidden radio-card" id="d_1" name="durasi" type="radio"/>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low text-center" for="d_1">
+<span class="text-body-md font-bold">&lt; 2 Minggu</span>
+</label>
+<input class="hidden radio-card" id="d_2" name="durasi" type="radio"/>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low text-center" for="d_2">
+<span class="text-body-md font-bold">2 - 4 Minggu</span>
+</label>
+<input class="hidden radio-card" id="d_3" name="durasi" type="radio"/>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low text-center" for="d_3">
+<span class="text-body-md font-bold">1 - 2 Bulan</span>
+</label>
+<input class="hidden radio-card" id="d_4" name="durasi" type="radio"/>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low text-center" for="d_4">
+<span class="text-body-md font-bold">&gt; 2 Bulan</span>
+</label>
+</div>
+</section>
+<!-- Section 6: Potensi Risiko (Checkbox) -->
+<section class="space-y-4">
+<label class="text-headline-md font-headline-md">Potensi Risiko Tambahan</label>
+<div class="grid grid-cols-1 gap-3">
+<input class="hidden checkbox-card" id="risk_karhutla" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="risk_karhutla">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Kebakaran Hutan &amp; Lahan (Karhutla)</span>
+</label>
+<input class="hidden checkbox-card" id="risk_penyakit" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="risk_penyakit">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Munculnya Penyakit</span>
+</label>
+<input class="hidden checkbox-card" id="risk_konflik" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="risk_konflik">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Konflik Sosial</span>
+</label>
+<div class="space-y-2">
+<input class="hidden checkbox-card" id="risk_other" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="risk_other">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Lainnya</span>
+</label>
+<input class="w-full h-10 px-4 border-b border-outline-variant outline-none focus:border-primary-container bg-transparent text-sm" placeholder="Sebutkan potensi risiko lainnya..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Section 7: Upaya Masyarakat -->
+<section class="space-y-4">
+<label class="text-headline-md font-headline-md">Upaya Masyarakat</label>
+<div class="grid grid-cols-1 gap-3">
+<input class="hidden checkbox-card" id="upaya_sumur" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="upaya_sumur">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Membuat sumur gali baru</span>
+</label>
+<input class="hidden checkbox-card" id="upaya_tangki" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="upaya_tangki">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Membeli air bersih dari tangki</span>
+</label>
+<input class="hidden checkbox-card" id="upaya_sungai" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="upaya_sungai">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Mengambil air dari sungai</span>
+</label>
+<div class="space-y-2">
+<input class="hidden checkbox-card" id="upaya_other" type="checkbox"/>
+<label class="flex items-center gap-3 p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low" for="upaya_other">
+<div class="checkbox-square w-5 h-5 rounded border-2 border-outline flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'wght' 700">check</span>
+</div>
+<span class="font-medium">Lainnya</span>
+</label>
+<input class="w-full h-10 px-4 border-b border-outline-variant outline-none focus:border-primary-container bg-transparent text-sm" placeholder="Sebutkan upaya lainnya..." type="text"/>
+</div>
+</div>
+</section>
+</form>
+</div>
+<!-- Warning Alert -->
+<div class="mt-6 flex gap-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+<span class="material-symbols-outlined text-orange-600" data-icon="warning" style="font-variation-settings: 'FILL' 1">warning</span>
+<div>
+<p class="text-label-bold font-label-bold text-orange-800">PERHATIAN</p>
+<p class="text-body-md text-orange-700">Pastikan data yang Anda masukkan akurat karena akan digunakan sebagai basis pendistribusian bantuan air bersih.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 md:px-24 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.1)]">
+<button class="flex items-center gap-2 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/20 px-8 py-3 rounded-lg hover:opacity-90 active:scale-98 transition-all font-['Inter'] text-sm font-bold uppercase">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+            Kembali
+        </button>
+<button class="flex items-center gap-2 bg-orange-500 text-white px-8 py-3 rounded-lg shadow-lg shadow-orange-500/30 hover:opacity-90 active:scale-98 transition-all font-['Inter'] text-sm font-bold uppercase">
+            Lanjut
+            <span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</nav>
+</body></html>

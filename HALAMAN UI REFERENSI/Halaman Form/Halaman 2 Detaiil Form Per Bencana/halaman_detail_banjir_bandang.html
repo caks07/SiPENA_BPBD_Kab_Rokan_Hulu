@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Laporan Bencana - BPBD Rokan Hulu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.active-card {
+    border-color: #F39200;
+    background-color: #fffaf0;
+    box-shadow: 0 4px 12px rgba(243, 146, 0, 0.1)
+    }
+body {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuC_iHxqHSdeB653DiIsLx0Sp-c4pWfcl8pUmpOWnf8XKB-XBsFEE5ttNnpDmPWQ9eGJQC4Un3dEICqgoTXCBVbkO31aeS1-vkoB6tPmDm8Wq197DCWmXqFS8769y4h8DwnI6m__dEy2zq5P2YV26LhBZ0MgseYg8cFgFoZop_qaVBVG5cbqqO_DxpJ01lUrGZHOoKUW0Kzwk_cf_ocJI7qqqZz2u0YeVJ1bcypBAGC9k9Q12rfqPYK8ynTHzcZLKer_lGcdzJ1YhuvP);
+    background-size: cover;
+    background-attachment: fixed
+    }</style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#ffdcbd",
+                        "primary": "#8a5100",
+                        "primary-container": "#f39200",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e8e8e8",
+                        "outline-variant": "#dac2ae",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#5f6270",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2f3131",
+                        "inverse-primary": "#ffb86e",
+                        "tertiary-fixed-dim": "#c5c6ce",
+                        "secondary-fixed-dim": "#c4c5d6",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#ffb86e",
+                        "on-tertiary-fixed": "#191b22",
+                        "on-background": "#1a1c1c",
+                        "surface-bright": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "tertiary": "#5d5e65",
+                        "on-secondary-fixed": "#181b27",
+                        "on-primary-fixed": "#2c1600",
+                        "on-secondary-fixed-variant": "#434654",
+                        "surface-container-low": "#f3f3f3",
+                        "background": "#f9f9f9",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5b5e6c",
+                        "surface": "#f9f9f9",
+                        "surface-dim": "#dadada",
+                        "on-tertiary-container": "#3c3d44",
+                        "surface-tint": "#8a5100",
+                        "outline": "#877362",
+                        "on-tertiary-fixed-variant": "#45464e",
+                        "surface-container": "#eeeeee",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary-fixed": "#e2e2eb",
+                        "secondary-fixed": "#e0e1f2",
+                        "on-primary-container": "#5c3400",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "tertiary-container": "#a8a8b1",
+                        "secondary-container": "#dddfef",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#544434",
+                        "on-primary-fixed-variant": "#693c00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "navbar-height": "64px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "unit": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "panel-width": "360px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "data-mono": ["monospace"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "data-mono": ["13px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "headline-xl": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md">
+<!-- Top Navigation Shell -->
+<nav class="bg-[#1C1F2B]/85 backdrop-blur-md fixed top-0 z-50 flex justify-between items-center px-6 h-16 w-full border-b border-white/10 shadow-2xl">
+<div class="flex items-center gap-4">
+<span class="text-xl font-black text-white uppercase tracking-wider font-headline-md">BPBD ROKAN HULU</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-slate-300 hover:text-white transition-colors font-label-bold text-label-bold" href="#">Dashboard</a>
+<a class="text-orange-500 border-b-2 border-orange-500 pb-1 font-label-bold text-label-bold" href="#">Laporan</a>
+<a class="text-slate-300 hover:text-white transition-colors font-label-bold text-label-bold" href="#">Peta Risiko</a>
+<a class="text-slate-300 hover:text-white transition-colors font-label-bold text-label-bold" href="#">Kontak Darurat</a>
+</div>
+<div class="flex items-center gap-4 text-white">
+<span class="material-symbols-outlined cursor-pointer hover:bg-white/5 p-2 rounded-full">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-white/5 p-2 rounded-full">account_circle</span>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-4 max-w-3xl mx-auto">
+<!-- Progress Stepper -->
+<div class="mb-8 px-4">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Laporan Banjir Bandang</h1>
+<p class="font-body-md text-body-md text-secondary">Geospatial Intelligence System Monitoring</p>
+</div>
+<div class="text-right">
+<span class="font-label-bold text-label-bold text-primary px-3 py-1 bg-primary-fixed rounded-full">STEP 2 OF 4</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-2/4 transition-all duration-500"></div>
+</div>
+</div>
+<!-- Form Card Container -->
+<div class="space-y-6">
+<!-- Section 1: Kecepatan Datang -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="mb-4">
+<label class="font-headline-md text-headline-md text-on-surface">WAKTU KECEPATAN DATANGNYA AIR <span class="text-error">*</span></label>
+<p class="text-label-sm font-label-sm text-secondary mt-1">Estimasi seberapa cepat kenaikan debit air terjadi di lokasi</p>
+</div>
+<div class="space-y-3">
+<label class="group relative flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all">
+<input class="w-5 h-5 text-primary-container focus:ring-primary-container border-outline" name="speed" type="radio"/>
+<div class="ml-4">
+<span class="block font-headline-md text-body-md font-semibold text-on-surface">Sangat Cepat</span>
+<span class="block text-label-sm font-label-sm text-secondary">Tiba-tiba dalam hitungan menit (Flash Flood)</span>
+</div>
+</label>
+<label class="group relative flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all">
+<input class="w-5 h-5 text-primary-container focus:ring-primary-container border-outline" name="speed" type="radio"/>
+<div class="ml-4">
+<span class="block font-headline-md text-body-md font-semibold text-on-surface">Bertahap</span>
+<span class="block text-label-sm font-label-sm text-secondary">Seiring hujan intensitas tinggi dalam waktu lama</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Section 2: Material Terbawa -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="mb-4">
+<label class="font-headline-md text-headline-md text-on-surface">MATERIAL YANG TERBAWA ARUS <span class="text-error">*</span></label>
+<p class="text-label-sm font-label-sm text-secondary mt-1">Pilih satu atau lebih material yang terlihat di aliran air</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Lumpur Tebal</span>
+</label>
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Batang Pohon / Kayu</span>
+</label>
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Batu-batuan / Kerikil</span>
+</label>
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Sampah / Puing</span>
+</label>
+</div>
+<div class="mt-4">
+<label class="flex flex-col gap-2">
+<div class="flex items-center px-4">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Lainnya</span>
+</div>
+<input class="mx-4 mt-1 bg-surface border-outline-variant rounded-md px-4 py-2 focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none font-body-md" placeholder="Sebutkan material lainnya..." type="text"/>
+</label>
+</div>
+</section>
+<!-- Section 3: Kondisi Arus -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="mb-4">
+<label class="font-headline-md text-headline-md text-on-surface">KONDISI ARUS SAAT INI <span class="text-error">*</span></label>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<label class="flex flex-col p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all">
+<div class="flex items-center">
+<input class="w-5 h-5 text-primary-container focus:ring-primary-container" name="current" type="radio"/>
+<span class="ml-3 font-headline-md text-body-md font-semibold text-on-surface">Arus Sangat Deras</span>
+</div>
+<span class="ml-8 text-label-sm font-label-sm text-error font-semibold uppercase mt-1">Berbahaya untuk evakuasi manual</span>
+</label>
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all">
+<input class="w-5 h-5 text-primary-container focus:ring-primary-container" name="current" type="radio"/>
+<span class="ml-3 font-headline-md text-body-md font-semibold text-on-surface">Arus Mulai Melambat</span>
+</label>
+<label class="flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all">
+<input class="w-5 h-5 text-primary-container focus:ring-primary-container" name="current" type="radio"/>
+<span class="ml-3 font-headline-md text-body-md font-semibold text-on-surface">Air Sudah Surut</span>
+</label>
+</div>
+</section>
+<!-- Section 4: Kerusakan Infrastruktur -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="mb-4">
+<label class="font-headline-md text-headline-md text-on-surface">KERUSAKAN INFRASTRUKTUR UTAMA <span class="text-error">*</span></label>
+</div>
+<div class="space-y-3">
+<label class="flex items-center py-2 px-4 hover:bg-surface-container-low rounded-md transition-colors">
+<input class="w-5 h-5 rounded text-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Jalan Terputus / Amblas</span>
+</label>
+<label class="flex items-center py-2 px-4 hover:bg-surface-container-low rounded-md transition-colors">
+<input class="w-5 h-5 rounded text-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Jembatan Hanyut / Rusak Berat</span>
+</label>
+<label class="flex items-center py-2 px-4 hover:bg-surface-container-low rounded-md transition-colors">
+<input class="w-5 h-5 rounded text-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Bangunan Hanyut (Rumah/Fasum)</span>
+</label>
+<label class="flex items-center py-2 px-4 hover:bg-surface-container-low rounded-md transition-colors">
+<input class="w-5 h-5 rounded text-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Lahan Pertanian Hancur Total</span>
+</label>
+<div class="pt-2 px-4">
+<label class="flex flex-col gap-2">
+<div class="flex items-center">
+<input class="w-5 h-5 rounded text-primary-container border-outline" type="checkbox"/>
+<span class="ml-3 font-body-md text-body-md">Lainnya</span>
+</div>
+<input class="mt-1 bg-surface border-outline-variant rounded-md px-4 py-2 focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none font-body-md" placeholder="Sebutkan kerusakan lainnya..." type="text"/>
+</label>
+</div>
+</div>
+</section>
+<!-- Section 5: Cuaca -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="mb-4">
+<label class="font-headline-md text-headline-md text-on-surface">KONDISI CUACA SAAT INI <span class="text-error">*</span></label>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center">
+<input class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-primary-container text-3xl mb-1">wb_sunny</span>
+<span class="font-label-bold text-label-bold">Cerah</span>
+</label>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center">
+<input class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-secondary text-3xl mb-1">cloud</span>
+<span class="font-label-bold text-label-bold">Mendung</span>
+</label>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center">
+<input class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-blue-400 text-3xl mb-1">rainy</span>
+<span class="font-label-bold text-label-bold">Hujan Ringan</span>
+</label>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center">
+<input class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-blue-600 text-3xl mb-1">rainy_heavy</span>
+<span class="font-label-bold text-label-bold">Hujan Sedang</span>
+</label>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center border-primary-container bg-primary-fixed/30">
+<input checked="" class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-primary text-3xl mb-1" style="font-variation-settings: 'FILL' 1;">rainy</span>
+<span class="font-label-bold text-label-bold">Hujan Lebat</span>
+</label>
+<label class="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-lg cursor-pointer hover:border-primary-container hover:bg-primary-fixed/20 transition-all text-center">
+<input class="mb-2 text-primary-container" name="weather" type="radio"/>
+<span class="material-symbols-outlined text-error text-3xl mb-1">thunderstorm</span>
+<span class="font-label-bold text-label-bold">Hujan Petir</span>
+</label>
+</div>
+</section>
+</div>
+</main>
+<!-- Navigation Footer -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-outline-variant py-4 px-6 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+<div class="max-w-3xl w-full flex justify-between items-center">
+<button class="flex items-center gap-2 px-6 py-2 rounded-lg font-label-bold text-label-bold text-secondary hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+                KEMBALI
+            </button>
+<div class="flex items-center gap-6">
+<span class="text-label-sm font-label-sm text-secondary hidden sm:block">Perubahan otomatis disimpan</span>
+<button class="flex items-center gap-2 px-8 py-3 rounded-lg font-label-bold text-label-bold bg-primary-container text-white hover:brightness-95 active:scale-95 transition-all shadow-lg">
+                    LANJUT
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

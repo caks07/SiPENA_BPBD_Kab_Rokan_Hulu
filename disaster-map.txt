@@ -1,0 +1,233 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
+import type { LaporanBencana, PrioritasLaporan } from '@/lib/types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
+
+// Fix Leaflet default marker icon issue
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
+
+// Custom marker icons by priority
+const createIcon = (prioritas: PrioritasLaporan) => {
+  const colors: Record<PrioritasLaporan, string> = {
+    darurat: '#DC2626',
+    tinggi: '#EA580C',
+    sedang: '#CA8A04',
+    rendah: '#16A34A',
+  }
+
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: ${colors[prioritas]};
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  })
+}
+
+// Status badge colors
+const statusColors: Record<string, string> = {
+  awal: 'bg-danger text-danger-foreground',
+  update: 'bg-warning text-warning-foreground',
+  selesai: 'bg-success text-success-foreground',
+}
+
+const statusLabels: Record<string, string> = {
+  awal: 'Laporan Awal',
+  update: 'Dalam Penanganan',
+  selesai: 'Selesai',
+}
+
+interface LocationPickerProps {
+  onLocationSelect: (lat: number, lng: number) => void
+}
+
+function LocationPicker({ onLocationSelect }: LocationPickerProps) {
+  useMapEvents({
+    click(e) {
+      onLocationSelect(e.latlng.lat, e.latlng.lng)
+    },
+  })
+  return null
+}
+
+interface DisasterMapProps {
+  reports: LaporanBencana[]
+  onMarkerClick?: (report: LaporanBencana) => void
+  onLocationSelect?: (lat: number, lng: number) => void
+  selectedLocation?: { lat: number; lng: number } | null
+  isLocationPicker?: boolean
+  filterStatus?: string[]
+  filterJenisBencana?: number[]
+}
+
+export default function DisasterMap({
+  reports,
+  onMarkerClick,
+  onLocationSelect,
+  selectedLocation,
+  isLocationPicker = false,
+  filterStatus = [],
+  filterJenisBencana = [],
+}: DisasterMapProps) {
+  const [geoJsonData, setGeoJsonData] = useState<GeoJSON.FeatureCollection | null>(null)
+
+  // Load GeoJSON data
+  useEffect(() => {
+    fetch('/geojson/mapROHUL.geojson')
+      .then(res => res.json())
+      .then(data => setGeoJsonData(data))
+      .catch(err => console.error('Failed to load GeoJSON:', err))
+  }, [])
+
+  // Filter reports
+  const filteredReports = reports.filter(report => {
+    if (filterStatus.length > 0 && !filterStatus.includes(report.status)) {
+      return false
+    }
+    if (filterJenisBencana.length > 0 && !filterJenisBencana.includes(report.jenis_bencana_id)) {
+      return false
+    }
+    return true
+  })
+
+  // GeoJSON style
+  const geoJsonStyle = useCallback(() => ({
+    fillColor: '#3B82F6',
+    fillOpacity: 0.1,
+    color: '#1E40AF',
+    weight: 1.5,
+    opacity: 0.6,
+  }), [])
+
+  // GeoJSON feature handlers
+  const onEachFeature = useCallback((feature: GeoJSON.Feature, layer: L.Layer) => {
+    if (feature.properties) {
+      const name = feature.properties.NAMOBJ || feature.properties.name || 'Unknown'
+      layer.bindTooltip(name, {
+        permanent: false,
+        direction: 'center',
+        className: 'bg-background text-foreground px-2 py-1 rounded text-sm font-medium',
+      })
+    }
+  }, [])
+
+  // Center of Rokan Hulu
+  const center: [number, number] = [0.85, 100.45]
+
+  return (
+    <MapContainer
+      center={center}
+      zoom={10}
+      className="h-full w-full rounded-lg"
+      scrollWheelZoom={true}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {/* GeoJSON boundaries */}
+      {geoJsonData && (
+        <GeoJSON
+          data={geoJsonData}
+          style={geoJsonStyle}
+          onEachFeature={onEachFeature}
+        />
+      )}
+
+      {/* Location picker mode */}
+      {isLocationPicker && onLocationSelect && (
+        <LocationPicker onLocationSelect={onLocationSelect} />
+      )}
+
+      {/* Selected location marker (for picker mode) */}
+      {selectedLocation && (
+        <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
+          <Popup>
+            <div className="text-sm">
+              <p className="font-medium">Lokasi Terpilih</p>
+              <p className="text-muted-foreground">
+                {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+              </p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
+
+      {/* Disaster markers */}
+      {!isLocationPicker && filteredReports.map(report => {
+        if (!report.latitude || !report.longitude) return null
+
+        return (
+          <Marker
+            key={report.id}
+            position={[report.latitude, report.longitude]}
+            icon={createIcon(report.prioritas)}
+            eventHandlers={{
+              click: () => onMarkerClick?.(report),
+            }}
+          >
+            <Popup>
+              <div className="min-w-[200px] space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-sm">
+                    {report.jenis_bencana?.nama}
+                  </span>
+                  <Badge className={statusColors[report.status]}>
+                    {statusLabels[report.status]}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {report.kode_laporan}
+                </p>
+                <p className="text-sm">{report.kecamatan?.nama}</p>
+                <p className="text-xs text-muted-foreground">
+                  {format(new Date(report.tanggal), 'd MMMM yyyy', { locale: id })} - {report.waktu}
+                </p>
+                <p className="text-sm line-clamp-2">{report.deskripsi}</p>
+                {report.dampak && (
+                  <div className="text-xs space-y-1 pt-1 border-t">
+                    {report.dampak.korban_meninggal > 0 && (
+                      <p>Korban Meninggal: {report.dampak.korban_meninggal}</p>
+                    )}
+                    {(report.dampak.korban_luka_berat + report.dampak.korban_luka_ringan) > 0 && (
+                      <p>Korban Luka: {report.dampak.korban_luka_berat + report.dampak.korban_luka_ringan}</p>
+                    )}
+                  </div>
+                )}
+                {onMarkerClick && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => onMarkerClick(report)}
+                  >
+                    Lihat Detail
+                  </Button>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        )
+      })}
+    </MapContainer>
+  )
+}

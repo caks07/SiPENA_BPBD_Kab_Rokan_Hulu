@@ -1,0 +1,82 @@
+ada kesalahan berpikir kriitis pada anda. logika utamanya ini adalahan halaman 
+
+halaman_landing_page.html
+ halaman yang bisa diakses oleh ke 4 role untuk pilih bencana setelah dipilih mak aakan masuk ke
+
+halaman_pertama.html
+ form halaman pertama dimana disini udah nyimopen id bencanna yang diambiol untuk ke database setiap bencana akan masuk ek form ini nah berikutnya ada 9 halaman 2 atau 9 form halamn setalh halaman 1 ini yang menampilkan data data untukdatabase yang diinputkan dan pertanyaan dari database juga, beriktu 9 halaman bencannya 
+
+halaman_detail_banjir_bandang.html
+ 
+
+halaman_detail_banjir.html
+ 
+
+halaman_detail_cuaca_ekstrim.html
+ 
+
+halaman_detail_epidemi_wabah_penyakit.html
+ 
+
+halaman_detail_gempa_bumi.html
+ 
+
+halaman_detail_karhutla.html
+ 
+
+halaman_detail_kekeringan.html
+ 
+
+halaman_detail_konflik_sosial.html
+ 
+
+halaman_detail_tanah_longsor.html
+ 
+
+halaman_detail_tanah_longsor.html
+ nah setalh halaman ini setiap dorm akan ke halaman 3 dan 4 yan templat nyimpannya atau template [ertanyyaanya juga sama 
+
+halaman_ketiga.html
+ 
+
+halaman_keempat.html
+ nah lalu klik s9mpan janganupa untuk menyimpan lokasi disini nanti ada klik maps dari leaf lat juga di form halaman 1 dimana akan ptomatis kenbaca titik latiutud dan longtitud ke parse lah di tabelnya nanti kan, oke suimpan nih ke lap;oran bencananah unrtuk tim trc itu ga ada bia ngaksses button login di halaman landingh page ini (landing page ini akan jadu halamn pertama yang kebuka keketika klikweb ini 
+
+halaman_landing_page.html
+ ketika klik login akan masuk kehalam ini 
+
+halaman_login.html
+ bisa 3 role yang login ya tim trc ga bisa login yang login adalah admin kecamatan admin kabupaten dan kepala bpbd. admi kecamatan akna masuk eke dashbioard sendiri yag aksesnya terbatyas hanya bsia lighattitik di kecamatan ersebut saja bentuknbyta tabel ya jangan ada maps 
+
+halaman_rekap_kecamatan.html
+ aadmnin kebupaten akanmasuk ke 
+
+halaman_dashboard_peta.html
+ ketika klik titik bencana masuk ke 
+
+halaman_detail_bencana.html
+ nah ketia klik di navbar rekapo masulk ke 
+
+halaman_infografis_bencana.html
+ ketika klik rekap di navbar masuk  ke 
+
+halaman_rekap_kabupaten.html
+ nah adaa button kan di tabvelnya yaiotu untuk update atau apa 
+
+halaman_edit_bencana.html
+ akan masuk eksini. oke kita lanjurt untukj pimpinman hanya punya 2 halaman yauitu eh maksudnya 3 denagn detail 
+
+halaman_dashboard_peta.html
+ 
+
+halaman_infografis_bencana.html
+ 
+
+halaman_detail_bencana.html
+ . ingat ya halamandetail bnecnana ada yang posisinya sama bentuk datanya tapi untukonteks yang menampikan dari halamn 2 form itu ada satu komponen card sendri. nah saya ingin anda integrasikan halamnb hlaman ini pindah ke file jscx atau tsx insitinya integrasikan ke sitem kkta. inilah gambaran sistem kita sebenarnya lebihb konplejks dan teriuntegrasi terutama alur database yang baya tabel dan iopt akan dipanggikl di forn dan juga intuk data isiya masuk nya ke tabel dan infografis anda pahami koreksi buat dfile baru bisa perlu edit atau beberao di riombak siolahkan langsung anda edit ya jangan lup in adalah struktur database nya
+
+Database_Sipena.txt
+ ingat jika ada yang betabtrakan creak sesuai pertanyaan pada halama  ui 
+
+MapRohul.geojson
+ 

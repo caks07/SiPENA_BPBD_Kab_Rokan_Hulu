@@ -1,0 +1,395 @@
+Konflik Sosial
+
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Form Detail Bencana: Konflik Sosial | ConflictMonitor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dadada",
+                        "on-secondary-fixed": "#181b27",
+                        "surface-container-highest": "#e2e2e2",
+                        "secondary-container": "#dddfef",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-container": "#3c3d44",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#c5c6ce",
+                        "primary": "#8a5100",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#544434",
+                        "on-primary-fixed": "#2c1600",
+                        "surface-bright": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
+                        "outline-variant": "#dac2ae",
+                        "on-tertiary-fixed-variant": "#45464e",
+                        "on-primary-fixed-variant": "#693c00",
+                        "on-surface": "#1a1c1c",
+                        "tertiary-container": "#a8a8b1",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#e2e2eb",
+                        "on-secondary": "#ffffff",
+                        "outline": "#877362",
+                        "on-tertiary-fixed": "#191b22",
+                        "background": "#f9f9f9",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#ffdcbd",
+                        "primary-fixed-dim": "#ffb86e",
+                        "tertiary": "#5d5e65",
+                        "on-background": "#1a1c1c",
+                        "surface-tint": "#8a5100",
+                        "secondary-fixed": "#e0e1f2",
+                        "on-error": "#ffffff",
+                        "primary-container": "#f39200",
+                        "on-secondary-fixed-variant": "#434654",
+                        "inverse-on-surface": "#f1f1f1",
+                        "secondary-fixed-dim": "#c4c5d6",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9f9",
+                        "on-primary-container": "#5c3400",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-container": "#eeeeee",
+                        "on-secondary-container": "#5f6270",
+                        "inverse-primary": "#ffb86e",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#5b5e6c",
+                        "inverse-surface": "#2f3131"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "panel-width": "360px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "navbar-height": "64px",
+                        "xl": "32px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "data-mono": ["monospace"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-xl": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "data-mono": ["13px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-card {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .step-indicator {
+            background: linear-gradient(to right, #f39200 50%, #e2e2e2 50%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input:checked + label {
+            border-color: #f39200;
+            background-color: rgba(243, 146, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-low min-h-screen py-10 px-4">
+<!-- Progress Tracker Container -->
+<div class="max-w-2xl mx-auto mb-6">
+<div class="bg-white rounded-xl p-4 shadow-sm border border-outline-variant">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-bold font-label-bold text-on-surface-variant uppercase">Laporan Konflik Sosial</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">50% Selesai</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-primary-container h-2 rounded-full w-1/2"></div>
+</div>
+<p class="mt-2 text-label-sm font-label-sm text-secondary">Step 2 dari 4: Detail Karakteristik Konflik</p>
+</div>
+</div>
+<!-- Main Form Card -->
+<main class="max-w-2xl mx-auto space-y-6">
+<!-- Header Section -->
+<header class="bg-white rounded-t-xl border-t-8 border-primary-container p-8 shadow-sm">
+<h1 class="text-headline-xl font-headline-xl text-on-surface mb-2">Detail Kejadian Konflik</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Berikan informasi mendalam mengenai sifat, aktor, dan pemicu konflik untuk membantu analisis eskalasi petugas di lapangan.</p>
+<p class="mt-4 text-label-sm font-label-sm text-error">* Wajib diisi</p>
+</header>
+<!-- Form Content -->
+<form class="space-y-4">
+<!-- Section 1: Sifat Konflik -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">SIFAT KONFLIK <span class="text-error">*</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="relative">
+<input class="hidden peer" id="sifat_1" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_1">
+<span class="text-body-md font-body-md text-on-surface">Bentrokan Fisik (Antar kelompok/warga)</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="sifat_2" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_2">
+<span class="text-body-md font-body-md text-on-surface">Demonstrasi Masif / Unjuk Rasa Masif</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="sifat_3" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_3">
+<span class="text-body-md font-body-md text-on-surface">Penutupan / Pemblokiran Akses (Jalan/Lahan)</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="sifat_4" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_4">
+<span class="text-body-md font-body-md text-on-surface">Intimidasi / Ketegangan Tanpa Kekerasan Fisik</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="sifat_5" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_5">
+<span class="text-body-md font-body-md text-on-surface">Perusakan Properti / Fasilitas</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="sifat_lain_toggle" name="sifat_konflik" type="radio"/>
+<label class="flex items-center p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="sifat_lain_toggle">
+<span class="text-body-md font-body-md text-on-surface">Yang lain</span>
+</label>
+</div>
+</div>
+<div class="mt-4 hidden peer-checked:block" id="sifat_konflik_lain_container">
+<input class="w-full border-b-2 border-outline focus:border-primary-container focus:ring-0 py-2 outline-none text-body-md" name="sifat_konflik_lain" placeholder="Sebutkan sifat lainnya..." type="text"/>
+</div>
+</section>
+<!-- Section 2: Aktor yang Terlibat -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">AKTOR YANG TERLIBAT (ESTIMASI) <span class="text-error">*</span></h2>
+<div class="space-y-3">
+<div class="relative">
+<input class="hidden peer" id="actor_1" name="aktor_terlibat" type="radio"/>
+<label class="flex items-center gap-3 p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="actor_1">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:border-primary-container">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container opacity-0 peer-checked:opacity-100"></div>
+</div>
+<span class="text-body-md font-body-md text-on-surface">Antar Warga / Kelompok Masyarakat</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="actor_2" name="aktor_terlibat" type="radio"/>
+<label class="flex items-center gap-3 p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="actor_2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:border-primary-container">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container opacity-0 peer-checked:opacity-100"></div>
+</div>
+<span class="text-body-md font-body-md text-on-surface">Warga dengan Perusahaan (HGU/Konflik Lahan)</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="actor_3" name="aktor_terlibat" type="radio"/>
+<label class="flex items-center gap-3 p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="actor_3">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:border-primary-container">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container opacity-0 peer-checked:opacity-100"></div>
+</div>
+<span class="text-body-md font-body-md text-on-surface">Warga dengan Instansi Pemerintah</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="actor_4" name="aktor_terlibat" type="radio"/>
+<label class="flex items-center gap-3 p-4 border-2 border-outline-variant rounded-lg cursor-pointer hover:border-primary-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50" for="actor_4">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:border-primary-container">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container opacity-0 peer-checked:opacity-100"></div>
+</div>
+<span class="text-body-md font-body-md text-on-surface">Antar Organisasi Kemasyarakatan (Ormas)</span>
+</label>
+</div>
+</div>
+</section>
+<!-- Section 3: Dugaan Pemicu Utama -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">DUGAAN PEMICU UTAMA <span class="text-error">*</span></h2>
+<div class="grid grid-cols-1 gap-3">
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline peer" id="pemicu_1" name="pemicu_utama" type="radio"/>
+<label class="text-body-md font-body-md text-on-surface" for="pemicu_1">Masalah Sengketa Lahan</label>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline peer" id="pemicu_2" name="pemicu_utama" type="radio"/>
+<label class="text-body-md font-body-md text-on-surface" for="pemicu_2">Isu SARA (Suku, Agama, Ras, Antargolongan)</label>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline peer" id="pemicu_3" name="pemicu_utama" type="radio"/>
+<label class="text-body-md font-body-md text-on-surface" for="pemicu_3">Dampak Lingkungan (Limbah/Polusi)</label>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline peer" id="pemicu_4" name="pemicu_utama" type="radio"/>
+<label class="text-body-md font-body-md text-on-surface" for="pemicu_4">Kesenjangan Sosial / Masalah Ketenagakerjaan</label>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded text-primary-container focus:ring-primary-container border-outline peer" id="pemicu_lain_toggle" name="pemicu_utama" type="radio"/>
+<label class="text-body-md font-body-md text-on-surface" for="pemicu_lain_toggle">Yang lain</label>
+</div>
+<input class="ml-8 w-[calc(100%-2rem)] border-b border-outline-variant focus:border-primary-container focus:ring-0 py-1 outline-none text-body-md" name="pemicu_lain" placeholder="Berikan detail pemicu..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Section 4: Estimasi Jumlah Orang -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">ESTIMASI JUMLAH ORANG YANG TERLIBAT <span class="text-error">*</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="relative group">
+<input class="hidden peer" id="size_small" name="jumlah_orang" type="radio"/>
+<label class="flex flex-col items-center justify-center p-6 border-2 border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50 peer-checked:ring-2 peer-checked:ring-primary-container/20" for="size_small">
+<span class="material-symbols-outlined text-4xl mb-2 text-secondary group-hover:text-primary-container transition-colors">group</span>
+<span class="text-label-bold font-label-bold uppercase mb-1">Kecil</span>
+<span class="text-body-md font-body-md text-center">&lt; 20 Orang</span>
+</label>
+</div>
+<div class="relative group">
+<input class="hidden peer" id="size_medium" name="jumlah_orang" type="radio"/>
+<label class="flex flex-col items-center justify-center p-6 border-2 border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50 peer-checked:ring-2 peer-checked:ring-primary-container/20" for="size_medium">
+<span class="material-symbols-outlined text-4xl mb-2 text-secondary group-hover:text-primary-container transition-colors">groups</span>
+<span class="text-label-bold font-label-bold uppercase mb-1">Sedang</span>
+<span class="text-body-md font-body-md text-center">20 - 100 Orang</span>
+</label>
+</div>
+<div class="relative group">
+<input class="hidden peer" id="size_large" name="jumlah_orang" type="radio"/>
+<label class="flex flex-col items-center justify-center p-6 border-2 border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container transition-all peer-checked:border-primary-container peer-checked:bg-orange-50 peer-checked:ring-2 peer-checked:ring-primary-container/20" for="size_large">
+<span class="material-symbols-outlined text-4xl mb-2 text-secondary group-hover:text-primary-container transition-colors">diversity_3</span>
+<span class="text-label-bold font-label-bold uppercase mb-1">Besar</span>
+<span class="text-body-md font-body-md text-center">&gt; 100 Orang</span>
+</label>
+</div>
+</div>
+</section>
+<!-- Section 5: Dampak Kerusakan Materil -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">DAMPAK KERUSAKAN MATERIL <span class="text-error">*</span></h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors cursor-pointer group">
+<label class="flex-1 text-body-md font-body-md text-on-surface cursor-pointer" for="damage_1">Kendaraan Terbakar / Rusak</label>
+<input class="w-6 h-6 border-outline text-primary-container focus:ring-primary-container rounded-full" id="damage_1" name="kerusakan_materil" type="radio"/>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors cursor-pointer group">
+<label class="flex-1 text-body-md font-body-md text-on-surface cursor-pointer" for="damage_2">Rumah / Bangunan Rusak</label>
+<input class="w-6 h-6 border-outline text-primary-container focus:ring-primary-container rounded-full" id="damage_2" name="kerusakan_materil" type="radio"/>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors cursor-pointer group">
+<label class="flex-1 text-body-md font-body-md text-on-surface cursor-pointer" for="damage_3">Fasilitas Umum Dirusak</label>
+<input class="w-6 h-6 border-outline text-primary-container focus:ring-primary-container rounded-full" id="damage_3" name="kerusakan_materil" type="radio"/>
+</div>
+<div class="flex items-center justify-between p-4 border-2 border-dashed border-outline-variant rounded-lg hover:border-primary-container transition-all cursor-pointer group">
+<label class="flex-1 text-body-md font-body-md font-bold text-secondary group-hover:text-primary cursor-pointer px-1" for="damage_none">Tidak Ada Kerusakan Materil</label>
+<input class="w-6 h-6 rounded-full border-outline text-secondary focus:ring-secondary mr-1" id="damage_none" name="kerusakan_materil" type="radio"/>
+</div>
+</div>
+</section>
+<!-- Section 6: Kehadiran Aparat -->
+<section class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-6">KEHADIRAN APARAT KEAMANAN DI LOKASI <span class="text-error">*</span></h2>
+<div class="grid grid-cols-1 gap-4">
+<div class="relative">
+<input class="hidden peer" id="aparat_none" name="aparat_exclusive" type="checkbox"/>
+<label class="flex items-center gap-4 p-5 border-2 border-outline-variant rounded-xl cursor-pointer peer-checked:border-error peer-checked:bg-error-container/10" for="aparat_none">
+<span class="material-symbols-outlined text-error">report_off</span>
+<div class="flex-1">
+<p class="text-body-md font-headline-md text-on-surface">Belum Ada Aparat</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Kebutuhan mendesak untuk pengamanan</p>
+</div>
+</label>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="relative">
+<input class="hidden peer" id="aparat_polisi" type="checkbox"/>
+<label class="flex flex-col p-4 border-2 border-outline-variant rounded-xl cursor-pointer peer-checked:border-primary-container peer-checked:bg-orange-50" for="aparat_polisi">
+<span class="text-label-bold font-label-bold uppercase text-secondary mb-1">Kepolisian</span>
+<span class="text-body-md font-body-md">Polres / Polsek</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="aparat_tni" type="checkbox"/>
+<label class="flex flex-col p-4 border-2 border-outline-variant rounded-xl cursor-pointer peer-checked:border-primary-container peer-checked:bg-orange-50" for="aparat_tni">
+<span class="text-label-bold font-label-bold uppercase text-secondary mb-1">TNI</span>
+<span class="text-body-md font-body-md">Personel Aktif</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="aparat_satpol" type="checkbox"/>
+<label class="flex flex-col p-4 border-2 border-outline-variant rounded-xl cursor-pointer peer-checked:border-primary-container peer-checked:bg-orange-50" for="aparat_satpol">
+<span class="text-label-bold font-label-bold uppercase text-secondary mb-1">Satpol PP</span>
+<span class="text-body-md font-body-md">Pemerintah Daerah</span>
+</label>
+</div>
+<div class="relative">
+<input class="hidden peer" id="aparat_lain_toggle" type="checkbox"/>
+<label class="flex flex-col p-4 border-2 border-outline-variant rounded-xl cursor-pointer peer-checked:border-primary-container peer-checked:bg-orange-50" for="aparat_lain_toggle">
+<span class="text-label-bold font-label-bold uppercase text-secondary mb-1">Lainnya</span>
+<span class="text-body-md font-body-md">Instansi Keamanan Lain</span>
+</label>
+</div>
+</div>
+<div class="mt-2">
+<input class="w-full border-b border-outline-variant focus:border-primary-container focus:ring-0 py-2 outline-none text-body-md bg-transparent" name="aparat_lain" placeholder="Sebutkan instansi lainnya..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Navigation Buttons -->
+<div class="flex items-center justify-between py-6">
+<button class="flex items-center gap-2 px-6 py-3 text-body-md font-label-bold text-secondary hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined">arrow_back</span>
+                    Kembali
+                </button>
+<div class="flex gap-4">
+<button class="px-6 py-3 border-2 border-outline-variant rounded-lg text-body-md font-label-bold text-on-surface-variant hover:bg-surface-container-high transition-colors" type="button">
+                        Simpan Draft
+                    </button>
+<button class="px-8 py-3 bg-primary-container text-white rounded-lg text-body-md font-label-bold shadow-lg shadow-primary-container/20 hover:bg-primary transition-all active:scale-95" type="submit">
+                        Lanjut ke Step 3
+                    </button>
+</div>
+</div>
+</form>
+<!-- Footer / Support -->
+<footer class="text-center pb-12">
+<p class="text-label-sm font-label-sm text-secondary">
+                ConflictMonitor Dashboard © 2024. Geospatial Intelligence System.
+            </p>
+<div class="flex justify-center gap-4 mt-2">
+<a class="text-label-sm font-label-sm text-primary hover:underline" href="#">Pusat Bantuan</a>
+<a class="text-label-sm font-label-sm text-primary hover:underline" href="#">Kebijakan Privasi</a>
+</div>
+</footer>
+</main>
+</body></html>
