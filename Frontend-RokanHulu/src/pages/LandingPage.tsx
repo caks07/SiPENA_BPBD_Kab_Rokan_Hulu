@@ -84,7 +84,7 @@ export default function LandingPage() {
           <div className="-ml-4 sm:-ml-8 md:-ml-10 relative z-10 flex flex-col items-center">
             <img src="/emblem_kepalaBPBD.png" alt="Emblem Kepala BPBD" className="h-32 sm:h-48 md:h-64 lg:h-80 w-auto object-contain drop-shadow-lg" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-1 text-center">
-              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">Zulhendri, S.Sos.,M.IP</p>
+              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">H. Zulhendri, S.Sos.,M.IP</p>
               <p className="text-[5px] sm:text-[8px] md:text-[10px] lg:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">Kalaksa BPBD Rokan Hulu</p>
             </div>
           </div>
