@@ -81,8 +81,15 @@ const FIELD_LABELS: Record<string, string> = {
   kecamatan_id: "Kecamatan",
 };
 
-function formatValue(key: string, value: any, options: any, jenisBencana?: string): any {
+function formatValue(key: string, value: any, options: any, jenisBencana?: string, kecamatanList?: any[]): any {
   if (value === null || value === undefined || value === "") return null;
+
+  // Resolve kecamatan_id ke nama kecamatan
+  if (key === "kecamatan_id" && kecamatanList) {
+    const kec = kecamatanList.find((k: any) => String(k.id) === String(value));
+    if (kec) return kec.nama_kecamatan;
+    return `Kecamatan #${value}`;
+  }
 
   if (key.includes("korban") || key.includes("jiwa")) {
     return `${value} jiwa`;
@@ -182,6 +189,27 @@ function resolveLabel(val: any, optKey: string | null, options: any): string {
   return list.find((o) => o.id == parsedVal)?.label ?? String(parsedVal);
 }
 
+/** Satuan untuk field numerik bebas (bukan dari opsi referensi) */
+const FIELD_UNITS: Record<string, string> = {
+  luas_genangan:   "m²",
+  luas_terbakar:   "Ha",
+  luas_lahan:      "Ha",
+  jumlah_bergejala:"jiwa",
+  jumlah_kk:       "KK",
+  dimensi_longsor: "m",
+};
+
+/** Label tampilan yang lebih deskriptif untuk field numerik */
+const FIELD_DISPLAY_LABELS: Record<string, string> = {
+  luas_genangan:    "Estimasi Luas Genangan",
+  luas_terbakar:    "Estimasi Luas Terbakar",
+  luas_lahan:       "Luas Lahan Terdampak",
+  jumlah_bergejala: "Jumlah Warga Bergejala",
+  jumlah_kk:        "Jumlah KK Terdampak",
+  dimensi_longsor:  "Dimensi Longsor (P × L × T)",
+  kronologi:        "Kronologi Kejadian",
+};
+
 function DetailBencanaCard({ jenis, detail, options }: { jenis: string; detail: any; options: any }) {
   const fieldMap = FIELD_OPT_KEYS[jenis] ?? {};
   const skip = new Set(["laporan_id", "created_at", "updated_at"]);
@@ -201,19 +229,27 @@ function DetailBencanaCard({ jenis, detail, options }: { jenis: string; detail: 
           const optKey = fieldMap[key] ?? null;
           let label = resolveLabel(val, optKey, options);
 
+          // FIX: hanya ambil _lain jika lainKey berbeda dari key (regex match berhasil)
           const lainKey = key.replace(/_ids?$/, "_lain");
-          const lainVal = detail[lainKey];
+          const lainVal = lainKey !== key ? detail[lainKey] : undefined;
           if (lainVal && lainVal !== "" && label.toLowerCase().includes("lain")) {
             label = `${label} — ${lainVal}`;
           } else if (lainVal && lainVal !== "" && !optKey) {
-             // fallback for non-options that use _lain
-             label = `${label} — ${lainVal}`;
+            label = `${label} — ${lainVal}`;
           } else if (lainVal && lainVal !== "") {
-             // For checkboxes, it might contain other options + "Yang Lainnya"
-             label = `${label} (Lainnya: ${lainVal})`;
+            label = `${label} (Lainnya: ${lainVal})`;
           }
 
-          const displayKey = key.replace(/_ids?$/, "").replace(/_/g, " ");
+          // Tambahkan satuan untuk field numerik bebas
+          const unit = FIELD_UNITS[key];
+          if (unit && label && label !== "-" && !isNaN(Number(label))) {
+            label = `${label} ${unit}`;
+          }
+
+          // Gunakan label deskriptif jika tersedia, fallback ke key-based
+          const displayKey = FIELD_DISPLAY_LABELS[key]
+            ?? key.replace(/_ids?$/, "").replace(/_/g, " ");
+
           if (!label || label === "-" || label === "null") return null;
           return (
             <div key={key} className="space-y-1">
@@ -251,6 +287,12 @@ export default function DetailPage() {
     enabled: !!jenisBencana,
   });
 
+  const { data: kecamatanList = [] } = useQuery({
+    queryKey: ["kecamatan-list"],
+    queryFn: async () => { const { data } = await api.get("/kecamatan"); return data as { id: number; nama_kecamatan: string }[]; },
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Satellite layer state for mini map
   const [mapLayer, setMapLayer] = useState<"osm"|"satellite">("satellite");
   // GeoJSON boundary
@@ -274,7 +316,12 @@ export default function DetailPage() {
   };
 
   const getImageUrl = (foto: any) => {
-    return foto.file_path ? `${import.meta.env.VITE_API_URL?.replace("/api", "")}${foto.file_path}` : foto.url;
+    // Gunakan /storage proxy (di-proxy oleh Vite ke backend) agar bekerja via ngrok
+    if (foto.file_path) {
+      // file_path biasanya "/storage/fotos/xxx.jpg"
+      return foto.file_path.startsWith("/") ? foto.file_path : `/${foto.file_path}`;
+    }
+    return foto.url ?? "";
   };
 
   useEffect(() => {
@@ -358,48 +405,57 @@ export default function DetailPage() {
         <div className="max-w-6xl mx-auto space-y-6 py-6">
 
           {/* Header */}
-          <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-[#F39200] text-sm">location_on</span>
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                  {laporan.nama_kecamatan ?? "Kecamatan"}
-                </span>
-              </div>
-              <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-                {jenisLabel} — {laporan.lokasi_text ?? "Rokan Hulu"}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 mt-2">
-                <span className="flex items-center gap-1.5 text-sm text-slate-500 font-mono">
-                  <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                  {laporan.waktu_kejadian ? new Date(laporan.waktu_kejadian).toLocaleString("id-ID") : "-"}
-                </span>
-                <span className={`px-3 py-0.5 rounded-full border text-[11px] font-bold uppercase ${badge.cls}`}>
-                  {badge.label}
-                </span>
-                <span className="text-slate-400 text-xs font-mono">ID: #{laporan.id}</span>
+          <section className="space-y-4">
+            {/* Title area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-[#F39200] text-sm">location_on</span>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    {laporan.nama_kecamatan ?? "Kecamatan"}
+                  </span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight leading-tight">
+                  {jenisLabel} — {laporan.lokasi_text ?? "Rokan Hulu"}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <span className="flex items-center gap-1.5 text-sm text-slate-500 font-mono">
+                    <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+                    {laporan.waktu_kejadian ? new Date(laporan.waktu_kejadian).toLocaleString("id-ID") : "-"}
+                  </span>
+                  <span className={`px-3 py-0.5 rounded-full border text-[11px] font-bold uppercase ${badge.cls}`}>
+                    {badge.label}
+                  </span>
+                  <span className="text-slate-400 text-xs font-mono">ID: #{laporan.id}</span>
+                </div>
               </div>
             </div>
-            <div className="flex gap-3 flex-shrink-0">
+
+            {/* Action buttons — responsive grid on mobile, flex row on desktop */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 no-print">
               <button onClick={handleKembali}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm hover:bg-slate-50 shadow-sm text-slate-700">
-                <span className="material-symbols-outlined text-[20px]">arrow_back</span> Kembali
+                className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-medium hover:bg-slate-50 shadow-sm text-slate-700 active:scale-95 transition-transform">
+                <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                <span>Kembali</span>
               </button>
               {canPrint && (
                 <button onClick={handlePrint}
-                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm hover:bg-slate-50 shadow-sm text-slate-700">
-                  <span className="material-symbols-outlined text-[20px]">print</span> Cetak
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-medium hover:bg-slate-50 shadow-sm text-slate-700 active:scale-95 transition-transform">
+                  <span className="material-symbols-outlined text-[20px]">print</span>
+                  <span>Cetak PDF</span>
                 </button>
               )}
               {canUpdateStatus && (
                 <>
                   <button onClick={() => navigate(`/edit-detail/${id}`)}
-                    className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm hover:bg-slate-50 shadow-sm text-slate-700">
-                    <span className="material-symbols-outlined text-[20px]">edit_note</span> Edit Laporan
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-medium hover:bg-slate-50 shadow-sm text-slate-700 active:scale-95 transition-transform">
+                    <span className="material-symbols-outlined text-[20px]">edit_note</span>
+                    <span>Edit Laporan</span>
                   </button>
                   <button onClick={() => { setStatusModal(laporan); setNewStatus(laporan.status ?? "siaga3"); setUpdateNotes(laporan.catatan_update ?? ""); }}
-                    className="flex items-center gap-2 px-5 py-2 bg-[#F39200] text-white font-semibold rounded-lg text-sm hover:brightness-110 shadow-md active:scale-95">
-                    <span className="material-symbols-outlined text-[20px]">update</span> Update Status
+                    className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F39200] text-white font-semibold rounded-xl text-sm hover:brightness-110 shadow-md active:scale-95 transition-transform">
+                    <span className="material-symbols-outlined text-[20px]">update</span>
+                    <span>Update Status</span>
                   </button>
                 </>
               )}
@@ -640,6 +696,19 @@ export default function DetailPage() {
                       newVal = typeof log.new_value === 'string' ? JSON.parse(log.new_value) : log.new_value;
                     } catch(e) {}
                     
+                    // Kumpulkan baris diff yang berubah
+                    const diffRows: { label: string; oldFmt: string; newFmt: string }[] = [];
+                    if (log.aksi !== "update_status" && oldVal && newVal && Object.keys(newVal).length > 0) {
+                      Object.keys(newVal).forEach((key) => {
+                        const oldFormatted = formatValue(key, oldVal[key], options, laporan.jenis_bencana, kecamatanList as any[]);
+                        const newFormatted = formatValue(key, newVal[key], options, laporan.jenis_bencana, kecamatanList as any[]);
+                        if (!newFormatted) return;
+                        if (oldFormatted === newFormatted) return;
+                        const label = FIELD_LABELS[key] || key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+                        diffRows.push({ label, oldFmt: String(oldFormatted || "-"), newFmt: String(newFormatted) });
+                      });
+                    }
+
                     return (
                       <div key={i} className="relative pl-8">
                         <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center z-10">
@@ -650,47 +719,28 @@ export default function DetailPage() {
                         </p>
                         <p className="text-sm font-semibold text-slate-800">{log.user ? log.user.name : "System"}</p>
                         
-                        {log.aksi !== "update_status" && oldVal && newVal && Object.keys(newVal).length > 0 ? (
+                        {diffRows.length > 0 ? (
                           <>
                             <p className="text-sm text-slate-700 font-medium mb-1">Mengubah data laporan</p>
-                            <div className="mt-1 bg-slate-50 border border-slate-200 rounded p-2 text-xs font-mono text-slate-600 space-y-1">
-                              {Object.keys(newVal).map((key) => {
-                                const oldFormatted = formatValue(key, oldVal[key], options, laporan.jenis_bencana);
-                                const newFormatted = formatValue(key, newVal[key], options, laporan.jenis_bencana);
-                                
-                                // Skip if both are null/dash or if they are identical after formatting
-                                if (!newFormatted) return null;
-                                if (oldFormatted === newFormatted) return null;
-                                
-                                const label = FIELD_LABELS[key] || key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-
-                                // Khusus kronologi, tampilkan sebagai blok
-                                if (key === "kronologi") {
-                                  return (
-                                    <div key={key} className="mt-2 border-t border-slate-200 pt-2">
-                                      <div className="font-semibold text-slate-700">{label} diperbarui:</div>
-                                      <div className="mt-1 pl-2 border-l-2 border-red-300 text-slate-500 italic">
-                                        "{oldFormatted || "-"}"
-                                      </div>
-                                      <div className="text-center text-slate-400 my-0.5 text-[10px]">↓</div>
-                                      <div className="pl-2 border-l-2 border-emerald-400 text-slate-700">
-                                        "{newFormatted}"
-                                      </div>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1">
-                                    <span className="font-semibold min-w-[150px]">{label}</span>
-                                    <span className="flex-1 flex flex-wrap items-center gap-1.5">
-                                      <span className="text-red-500">{oldFormatted || "-"}</span>
-                                      <span className="text-slate-400 text-[10px]">→</span>
-                                      <span className="text-emerald-600">{newFormatted}</span>
-                                    </span>
-                                  </div>
-                                );
-                              })}
+                            <div className="mt-1 rounded-lg overflow-hidden border border-slate-200">
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="bg-slate-100 text-slate-500">
+                                    <th className="text-left px-2 py-1.5 font-bold uppercase tracking-wider w-1/3">Field</th>
+                                    <th className="text-left px-2 py-1.5 font-bold uppercase tracking-wider text-red-500">Sebelum</th>
+                                    <th className="text-left px-2 py-1.5 font-bold uppercase tracking-wider text-emerald-600">Sesudah</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {diffRows.map((row, ri) => (
+                                    <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                                      <td className="px-2 py-1.5 font-semibold text-slate-600 border-t border-slate-100">{row.label}</td>
+                                      <td className="px-2 py-1.5 text-red-500 border-t border-slate-100 break-words">{row.oldFmt}</td>
+                                      <td className="px-2 py-1.5 text-emerald-600 font-semibold border-t border-slate-100 break-words">{row.newFmt}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
                           </>
                         ) : (
@@ -706,21 +756,7 @@ export default function DetailPage() {
         </div>
       </main>
 
-      {/* FAB Actions */}
-      <div className="no-print">
-        {role !== "pimpinan" && (
-          <button onClick={() => { setStatusModal(laporan); setNewStatus(laporan.status ?? "siaga3"); setUpdateNotes(laporan.catatan_update ?? ""); }}
-            className="fixed bottom-24 right-6 w-14 h-14 bg-[#F39200] text-white rounded-full shadow-2xl flex items-center justify-center lg:hidden z-50 active:scale-95"
-            title="Update Status Siaga">
-            <span className="material-symbols-outlined text-[28px]">shield</span>
-          </button>
-        )}
-        <button onClick={() => window.print()}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#1C1F2B] text-white rounded-full shadow-2xl flex items-center justify-center z-50 active:scale-95 lg:hidden"
-          title="Cetak / Print">
-          <span className="material-symbols-outlined text-[24px]">print</span>
-        </button>
-      </div>
+      {/* FAB dihapus — tombol aksi sudah ada di header section atas yang responsif */}
       {/* Modal Edit Status */}
       {statusModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">

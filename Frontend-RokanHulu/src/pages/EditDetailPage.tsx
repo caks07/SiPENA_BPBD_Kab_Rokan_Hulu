@@ -5,10 +5,10 @@
  * Menampilkan form yang sama dengan Step 1-4 tapi sudah prefill dari API.
  * Submit via PUT /laporan/:id
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, useMapEvents, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap, GeoJSON } from "react-leaflet";
 import { point } from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import L from "leaflet";
@@ -16,6 +16,64 @@ import "leaflet/dist/leaflet.css";
 import api from "../api/client";
 import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
+
+/** Custom TimeInput: ketik HH:mm manual, 24-jam */
+const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string) => void }) => {
+  const [internal, setInternal] = useState(value);
+  useEffect(() => { setInternal(value); }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9:]/g, "");
+    const colons = val.match(/:/g);
+    if (colons && colons.length > 1) return;
+    const native = e.nativeEvent as InputEvent;
+    if (val.length === 2 && !val.includes(":") && native.inputType !== "deleteContentBackward") val += ":";
+    if (val.length === 4 && !val.includes(":")) val = val.slice(0, 2) + ":" + val.slice(2);
+    if (val.length > 5) return;
+    setInternal(val);
+    if (val.length === 5 && val.includes(":")) {
+      const [h, m] = val.split(":");
+      if (parseInt(h) <= 23 && parseInt(m) <= 59) onChange(val);
+    } else if (val === "") onChange("");
+  };
+
+  const handleBlur = () => {
+    let val = internal;
+    if (!val) return;
+    if (!val.includes(":")) {
+      if (val.length <= 2) val = val.padStart(2, "0") + ":00";
+      else { val = val.padStart(4, "0"); val = val.slice(0, 2) + ":" + val.slice(2); }
+    } else {
+      const [h2, m2] = val.split(":");
+      val = `${h2.padStart(2, "0")}:${(m2 || "0").padStart(2, "0")}`;
+    }
+    const [h, m] = val.split(":");
+    if (parseInt(h) > 23 || parseInt(m) > 59) {
+      alert("Format waktu tidak valid! Jam (00-23) dan Menit (00-59).");
+      setInternal(""); onChange("00:00"); return;
+    }
+    setInternal(val); onChange(val);
+  };
+
+  return (
+    <input type="text" required placeholder="HH:mm" maxLength={5}
+      className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none text-center font-mono flex-shrink-0"
+      value={internal} onChange={handleChange} onBlur={handleBlur} />
+  );
+};
+
+/** FlyToPosition: auto-pan peta saat koordinat berubah */
+function FlyToPosition({ position }: { position: [number, number] | null }) {
+  const map = useMap();
+  const prev = useRef<[number, number] | null>(null);
+  useEffect(() => {
+    if (position && (prev.current === null || prev.current[0] !== position[0] || prev.current[1] !== position[1])) {
+      map.flyTo(position, Math.max(map.getZoom(), 12), { animate: true, duration: 0.8 });
+      prev.current = position;
+    }
+  }, [position, map]);
+  return null;
+}
 
 // FIELD_CONFIGS: same definition as Step2DetailBencana (subset shown, reused)
 type FieldCfg = { name: string; label: string; type: "radio"|"checkbox"|"text"|"number"; optKey?: string; required?: boolean; showOtherField?: boolean; otherName?: string };
@@ -196,6 +254,22 @@ export default function EditDetailPage() {
   const [fasilitas, setFasilitas] = useState<number[]>([]);
   const [logistik, setLogistik] = useState<number[]>([]);
   const [activeLayer, setActiveLayer] = useState<"osm"|"satellite">("satellite");
+
+  /** Saat kecamatan diganti, pan peta ke centroid kecamatan tersebut */
+  const handleKecamatanChange = (id: string) => {
+    setStep1(p => ({ ...p, kecamatan_id: id }));
+    const kec = (kecamatans as any[]).find((k: any) => String(k.id) === id);
+    if (kec && kec.latitude_default && kec.longitude_default) {
+      const newPos: [number, number] = [Number(kec.latitude_default), Number(kec.longitude_default)];
+      setPosition(newPos);
+      setStep1(p => ({
+        ...p,
+        kecamatan_id: id,
+        latitude: String(Number(kec.latitude_default).toFixed(6)),
+        longitude: String(Number(kec.longitude_default).toFixed(6)),
+      }));
+    }
+  };
 
   // Fetch options for detail bencana (Step 2)
   const jenisBencana = laporan?.jenis_bencana;
@@ -399,13 +473,27 @@ export default function EditDetailPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tanggal & Waktu Kejadian</label>
-                      <input required type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-                        value={step1.waktu_kejadian} onChange={e => setStep1(p=>({...p, waktu_kejadian: e.target.value}))} />
+                      <div className="flex gap-2">
+                        <input required type="date" max={new Date().toISOString().slice(0, 10)}
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                          value={step1.waktu_kejadian ? step1.waktu_kejadian.split("T")[0] : ""}
+                          onChange={e => {
+                            const timePart = step1.waktu_kejadian ? (step1.waktu_kejadian.split("T")[1] || "00:00") : "00:00";
+                            setStep1(p => ({ ...p, waktu_kejadian: `${e.target.value}T${timePart.slice(0,5)}` }));
+                          }} />
+                        <TimeInput
+                          value={step1.waktu_kejadian ? (step1.waktu_kejadian.split("T")[1]?.slice(0, 5) || "") : ""}
+                          onChange={val => {
+                            const datePart = step1.waktu_kejadian?.includes("T") ? step1.waktu_kejadian.split("T")[0] : new Date().toISOString().slice(0, 10);
+                            setStep1(p => ({ ...p, waktu_kejadian: `${datePart}T${val}` }));
+                          }} />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">Ketik waktu kejadian (HH:mm) dengan angka</p>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Kecamatan</label>
                       <select required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-                        value={step1.kecamatan_id} onChange={e => setStep1(p=>({...p, kecamatan_id: e.target.value}))}>
+                        value={step1.kecamatan_id} onChange={e => handleKecamatanChange(e.target.value)}>
                         <option value="">-- Pilih Kecamatan --</option>
                         {(kecamatans as any[]).map((k: any) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
                       </select>
@@ -472,6 +560,8 @@ export default function EditDetailPage() {
                             }}
                           />
                         )}
+                        {/* Auto-pan saat kecamatan berubah */}
+                        <FlyToPosition position={position} />
                         <MapPicker position={position} onPick={handleMapClick} />
                       </MapContainer>
                     </div>
