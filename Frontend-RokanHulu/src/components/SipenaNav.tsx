@@ -21,9 +21,7 @@ const NAV_PIMPINAN: NavItem[] = [
   { label: "Infografis", to: "/infografis" },
 ];
 
-// Operator: hanya rekap kecamatan wilayahnya
 const NAV_OPERATOR: NavItem[] = [
-  { label: "Dashboard", to: "/dashboard" },
   { label: "Rekap Kecamatan", to: "/rekap/kecamatan" },
 ];
 

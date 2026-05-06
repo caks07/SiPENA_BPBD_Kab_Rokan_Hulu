@@ -129,9 +129,13 @@ export default function InfografisPage() {
     acc[i.jenis_bencana] = (acc[i.jenis_bencana] ?? 0) + 1; return acc;
   }, {})).map(([k, v]) => ({ label: JENIS_LABEL[k] ?? k, value: v as number, color: JENIS_COLORS[k] ?? "#94A3B8" })).sort((a, b) => b.value - a.value);
 
+  const severityMap: Record<string, number> = { "Siaga 1": 1, "Siaga 2": 2, "Siaga 3": 3, "Selesai": 4 };
   const byStatus = Object.entries(laporan.reduce((acc: Record<string, number>, i: any) => {
     acc[i.status] = (acc[i.status] ?? 0) + 1; return acc;
-  }, {})).map(([k, v]) => ({ label: SIAGA_LABEL[k] ?? k, value: v as number, color: SIAGA_COLOR[k] ?? "#94A3B8" })).sort((a, b) => b.value - a.value);
+  }, {})).map(([k, v]) => ({ label: SIAGA_LABEL[k] ?? k, value: v as number, color: SIAGA_COLOR[k] ?? "#94A3B8" })).sort((a, b) => {
+    if (b.value !== a.value) return b.value - a.value;
+    return (severityMap[a.label] || 99) - (severityMap[b.label] || 99);
+  });
 
   const byKec = Object.entries(laporan.reduce((acc: Record<string, number>, i: any) => {
     const kec = i.nama_kecamatan ?? "Tidak diketahui"; acc[kec] = (acc[kec] ?? 0) + 1; return acc;
@@ -256,12 +260,13 @@ export default function InfografisPage() {
                {Object.entries(JENIS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
              </select>
            </div>
-           <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+           <div className="flex flex-col gap-1.5 flex-1 min-w-[200px] sm:min-w-[300px]">
              <label className="text-[11px] font-bold text-slate-500 uppercase">Periode</label>
-             <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 h-10">
-               <input type="date" className="bg-transparent text-sm outline-none w-full" value={filterDari} onChange={e => setFilterDari(e.target.value)} />
-               <span className="px-2 text-slate-400">s/d</span>
-               <input type="date" className="bg-transparent text-sm outline-none w-full" value={filterSampai} onChange={e => setFilterSampai(e.target.value)} />
+             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-0 bg-slate-50 border border-slate-200 rounded-lg p-2 sm:p-0 sm:h-10 sm:px-2">
+               <input type="date" max={filterSampai || undefined} className="bg-transparent text-sm outline-none w-full" value={filterDari} onChange={e => setFilterDari(e.target.value)} />
+               <span className="px-2 text-slate-400 hidden sm:block">s/d</span>
+               <span className="px-2 text-slate-400 sm:hidden block text-[10px] font-bold text-center w-full border-t border-b border-slate-200 py-1 my-1">SAMPAI</span>
+               <input type="date" min={filterDari || undefined} className="bg-transparent text-sm outline-none w-full" value={filterSampai} onChange={e => setFilterSampai(e.target.value)} />
              </div>
            </div>
            <button onClick={() => { setFilterJenis("semua"); setFilterKec("semua"); setFilterDari(""); setFilterSampai(""); }} className="bg-slate-100 text-slate-600 px-4 h-10 rounded-lg text-sm font-bold border border-slate-200">Reset</button>

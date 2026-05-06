@@ -37,7 +37,6 @@ export default function FormFlow() {
            className="fixed top-0 w-full z-50 shadow-xl flex justify-between items-center px-6 py-3">
         <div className="text-xl font-black text-white tracking-widest uppercase">SIPENA BPBD Rokan Hulu</div>
         <div className="hidden md:flex gap-8 items-center text-sm font-semibold">
-          <a href="#" className="text-slate-300 hover:text-white transition-colors">Dashboard</a>
           <span className="text-amber-500 border-b-2 border-amber-500 pb-1">Laporan</span>
         </div>
         <div className="flex items-center gap-4 text-slate-300">

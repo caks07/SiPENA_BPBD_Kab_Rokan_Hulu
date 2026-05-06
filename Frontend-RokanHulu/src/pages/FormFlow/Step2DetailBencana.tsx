@@ -19,7 +19,7 @@ const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
     { name: "penyebab_ids", label: "Kronologi Kejadian (Penyebab)", type: "checkbox", optKey: "opt_banjir_penyebab", required: true, showOtherField: true, otherName: "penyebab_lain" },
     { name: "ketinggian_banjir_id", label: "Ketinggian Banjir", type: "radio", optKey: "opt_banjir_ketinggian", required: true, showOtherField: true, otherName: "ketinggian_banjir_lain" },
     { name: "kondisi_air_id", label: "Kondisi Air Saat Ini", type: "radio", optKey: "opt_banjir_kondisi_air", required: true },
-    { name: "luas_genangan", label: "Estimasi Luas Genangan", type: "text", required: true },
+    { name: "luas_genangan", label: "Estimasi Luas Genangan", type: "number", required: true },
     { name: "kondisi_cuaca_id", label: "Kondisi Cuaca Saat Ini", type: "radio", optKey: "opt_kondisi_cuaca", required: true },
   ],
   banjir_bandang: [
@@ -157,7 +157,13 @@ export default function Step2DetailBencana() {
             type={field.type}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none"
             value={detail[field.name] || ""}
-            onChange={e => setField(field.name, e.target.value)}
+            onChange={e => {
+              if (field.type === "number") {
+                setField(field.name, e.target.value.replace(/[^0-9]/g, ''));
+              } else {
+                setField(field.name, e.target.value);
+              }
+            }}
             onKeyDown={field.type === "number"
               ? (e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }
               : undefined

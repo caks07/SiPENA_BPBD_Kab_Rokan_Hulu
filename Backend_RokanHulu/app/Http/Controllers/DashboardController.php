@@ -10,6 +10,7 @@ class DashboardController extends Controller
         $user  = $request->user();
         $query = DB::table('laporan_bencana as l')
             ->join('kecamatan as k', 'l.kecamatan_id', '=', 'k.id')
+            ->whereNull('l.deleted_at')
             ->select('l.id','l.jenis_bencana','l.nama_pelapor','l.waktu_kejadian',
                      'l.status','l.severity_level','l.latitude','l.longitude',
                      'l.lokasi_text','l.created_at','k.nama_kecamatan');
@@ -41,7 +42,7 @@ class DashboardController extends Controller
     public function statistik(Request $request)
     {
         $user = $request->user();
-        $base = DB::table('laporan_bencana');
+        $base = DB::table('laporan_bencana')->whereNull('deleted_at');
         if ($user->role->nama_role === 'operator' && $user->kecamatan_id) {
             $base->where('kecamatan_id', $user->kecamatan_id);
         }
@@ -56,6 +57,7 @@ class DashboardController extends Controller
                 ->groupBy('jenis_bencana')->get(),
             'korban' => DB::table('korban_bencana')
                 ->join('laporan_bencana','korban_bencana.laporan_id','=','laporan_bencana.id')
+                ->whereNull('laporan_bencana.deleted_at')
                 ->when($user->role->nama_role === 'operator' && $user->kecamatan_id,
                     fn($q) => $q->where('laporan_bencana.kecamatan_id', $user->kecamatan_id))
                 ->select(DB::raw('
@@ -94,6 +96,7 @@ class DashboardController extends Controller
             ->join('kecamatan as k', 'l.kecamatan_id', '=', 'k.id')
             ->leftJoin('korban_bencana as kb',   'kb.laporan_id',  '=', 'l.id')
             ->leftJoin('kerusakan_bencana as kr', 'kr.laporan_id', '=', 'l.id')
+            ->whereNull('l.deleted_at')
             ->select('l.*', 'k.nama_kecamatan',
                 DB::raw('COALESCE(kb.korban_meninggal,0)   as korban_meninggal'),
                 DB::raw('COALESCE(kb.korban_luka_ringan,0) as korban_luka_ringan'),

@@ -233,6 +233,12 @@ export default function DetailPage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
 
+  const handleKembali = () => {
+    if (role === "operator") navigate("/rekap/kecamatan");
+    else if (role === "admin" || role === "admin_kab") navigate("/rekap/kabupaten");
+    else navigate("/dashboard");
+  };
+
   const { data: laporan, isLoading } = useQuery({
     queryKey: ["laporan", id],
     queryFn: async () => { const { data } = await api.get(`/laporan/${id}`); return data; },
@@ -375,6 +381,10 @@ export default function DetailPage() {
               </div>
             </div>
             <div className="flex gap-3 flex-shrink-0">
+              <button onClick={handleKembali}
+                className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm hover:bg-slate-50 shadow-sm text-slate-700">
+                <span className="material-symbols-outlined text-[20px]">arrow_back</span> Kembali
+              </button>
               {canPrint && (
                 <button onClick={handlePrint}
                   className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm hover:bg-slate-50 shadow-sm text-slate-700">
@@ -540,7 +550,7 @@ export default function DetailPage() {
                           </button>
                         ))}
                       </div>
-                      <MapContainer center={[lat, lng]} zoom={13} className="w-full h-full" zoomControl={false}>
+                      <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false}>
                         <TileLayer
                           key={mapLayer}
                           url={mapLayer === "satellite"

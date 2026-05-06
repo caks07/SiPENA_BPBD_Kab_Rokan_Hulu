@@ -5,6 +5,7 @@ import { useAuth } from "../state/AuthContext";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -116,11 +117,20 @@ export default function LoginPage() {
                   <input 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none font-body-md text-[16px] text-on-surface" 
+                    className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none font-body-md text-[16px] text-on-surface" 
                     placeholder="••••••••" 
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
                 </div>
               </div>
 

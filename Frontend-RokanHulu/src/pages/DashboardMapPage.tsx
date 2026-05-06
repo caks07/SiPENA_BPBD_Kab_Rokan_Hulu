@@ -69,6 +69,7 @@ export default function DashboardMapPage() {
   const navigate = useNavigate();
   const [filterBencana, setFilterBencana] = useState("semua");
   const [filterStatus, setFilterStatus] = useState("semua");
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [geojsonData, setGeojsonData] = useState<any>(null);
 
   /* ── GeoJSON: Langsung dari MapRohul.geojson (file lokal) ── */
@@ -167,12 +168,14 @@ export default function DashboardMapPage() {
         <MapContainer
           center={[0.95, 100.35]}
           zoom={9}
+          minZoom={5}
+          maxBounds={[[6.0, 95.0], [-6.0, 109.0]]}
           zoomControl={false}
           style={{ width: "100%", height: "100%" }}
           scrollWheelZoom
         >
           <TileLayer
-            key={activeLayer}
+            key={`base-${activeLayer}`}
             attribution={activeLayer === "osm"
               ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               : "Tiles &copy; Esri"}
@@ -182,7 +185,7 @@ export default function DashboardMapPage() {
             maxZoom={19}
           />
           {activeLayer === "satellite" && (
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
+            <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
           )}
           <ZoomControl position="bottomright" />
 
@@ -281,10 +284,40 @@ export default function DashboardMapPage() {
         </MapContainer>
       </div>
 
+      {/* ── MOBILE BOTTOM BAR ── */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-between px-5 py-4 z-[800]">
+        <div className="flex gap-4">
+          {(["siaga1", "siaga2", "siaga3", "selesai"] as const).map((s) => {
+            const count = laporan.filter((i) => i.status === s).length;
+            return (
+              <div key={s} className="flex items-center gap-1.5">
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: STATUS_COLOR[s] }} />
+                <span className="text-white text-sm font-bold">{count}</span>
+              </div>
+            );
+          })}
+        </div>
+        <button onClick={() => setShowMobileMenu(true)} className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1 shadow-md">
+          <span className="material-symbols-outlined text-[16px]">tune</span>
+          Filter
+        </button>
+      </div>
+
       {/* ── PANEL FILTER ── */}
-      <aside className="fixed bottom-0 left-0 right-0 md:top-28 md:bottom-4 md:left-4 md:right-auto md:w-60 z-[900] bg-slate-900/95 backdrop-blur-xl md:rounded-2xl md:border border-white/10 flex md:flex-col p-4 gap-6 md:gap-3 overflow-x-auto md:overflow-y-auto shadow-2xl">
+      {showMobileMenu && <div className="md:hidden fixed inset-0 z-[850] bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />}
+      <aside className={`fixed z-[900] bg-slate-900/95 backdrop-blur-xl md:rounded-2xl md:border border-white/10 shadow-2xl transition-transform duration-300
+        ${showMobileMenu ? "translate-y-0" : "translate-y-full md:translate-y-0"}
+        bottom-0 left-0 right-0 p-6 md:p-4 rounded-t-3xl md:top-28 md:bottom-4 md:left-4 md:right-auto md:w-60 flex flex-col gap-6 md:gap-3 max-h-[85vh] md:max-h-none overflow-y-auto`}>
+        
+        <div className="flex md:hidden justify-between items-center border-b border-white/10 pb-3 mb-2">
+           <h3 className="text-white font-bold text-base">Filter & Ringkasan</h3>
+           <button onClick={() => setShowMobileMenu(false)} className="text-slate-400 hover:text-white">
+             <span className="material-symbols-outlined">close</span>
+           </button>
+        </div>
+
         {/* Filter Jenis */}
-        <div className="flex-shrink-0 min-w-[180px] md:min-w-0 md:w-full">
+        <div className="flex-shrink-0 w-full">
           <p style={{ color: "#64748B", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
             Filter Jenis
           </p>
@@ -312,7 +345,7 @@ export default function DashboardMapPage() {
         </div>
 
         {/* Filter Status Siaga */}
-        <div className="flex-shrink-0 min-w-[180px] md:min-w-0 md:w-full">
+        <div className="flex-shrink-0 w-full">
           <p style={{ color: "#64748B", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
             Filter Status Siaga
           </p>
@@ -339,7 +372,7 @@ export default function DashboardMapPage() {
         </div>
 
         {/* Ringkasan */}
-        <div className="flex-shrink-0 min-w-[160px] md:min-w-0 md:w-full" style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
+        <div className="flex-shrink-0 w-full" style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
           <p style={{ color: "#64748B", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
             Ringkasan
           </p>

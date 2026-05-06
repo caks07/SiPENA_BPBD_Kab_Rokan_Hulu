@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
@@ -37,6 +37,8 @@ export default function RekapKabPage() {
   const [filterSiaga,     setFilterSiaga]     = useState("semua");
   const [tanggalDari,     setTanggalDari]     = useState("");
   const [tanggalSampai,   setTanggalSampai]   = useState("");
+  const [currentPage,     setCurrentPage]     = useState(1);
+  const itemsPerPage = 20;
 
   const queryClient = useQueryClient();
   const [statusModal, setStatusModal] = useState<any>(null);
@@ -76,6 +78,12 @@ export default function RekapKabPage() {
     if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai)) return false;
     return true;
   });
+
+  // Reset pagination when filters change
+  useEffect(() => { setCurrentPage(1); }, [filterKecamatan, filterJenis, filterSiaga, tanggalDari, tanggalSampai]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const uniqueJenis = [...new Set(laporan.map((i) => i.jenis_bencana))];
 
@@ -302,14 +310,15 @@ export default function RekapKabPage() {
                     <option value="selesai">Selesai</option>
                   </select>
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1.5 w-full sm:w-auto">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>
-                  <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 h-10 gap-2">
-                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none" 
+                  <div className="flex flex-col sm:flex-row items-center bg-white border border-slate-200 rounded-lg p-2 sm:p-0 sm:px-3 sm:h-10 gap-2 w-full">
+                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none w-full" 
                            value={tanggalDari} max={tanggalSampai || undefined} 
                            onChange={(e) => setTanggalDari(e.target.value)} />
-                    <span className="text-slate-400 text-xs">s/d</span>
-                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none" 
+                    <span className="text-slate-400 text-xs hidden sm:block">s/d</span>
+                    <span className="text-slate-400 text-[10px] sm:hidden font-bold text-center w-full border-t border-b border-slate-100 py-1 my-1">SAMPAI</span>
+                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none w-full" 
                            value={tanggalSampai} min={tanggalDari || undefined} 
                            onChange={(e) => setTanggalSampai(e.target.value)} />
                   </div>
@@ -357,9 +366,9 @@ export default function RekapKabPage() {
                     <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">search_off</span>
                     Tidak ada data
                   </td></tr>
-                ) : filtered.map((item: any, i: number) => (
+                ) : paginatedData.map((item: any, i: number) => (
                   <tr key={item.id} className="hover:bg-slate-50/40 transition-colors group">
-                    <td className="px-4 py-3 text-slate-400 text-sm">{i + 1}</td>
+                    <td className="px-4 py-3 text-slate-400 text-sm">{(currentPage - 1) * itemsPerPage + i + 1}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-mono">
                       {item.waktu_kejadian ? new Date(item.waktu_kejadian).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) : "-"}
                     </td>
@@ -417,10 +426,30 @@ export default function RekapKabPage() {
           </div>
 
           {filtered.length > 0 && (
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-slate-500">
-                Menampilkan <strong>{filtered.length}</strong> dari <strong>{laporan.length}</strong> entri
+                Menampilkan <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri
               </p>
+              
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <span className="text-sm font-medium text-slate-600">
+                  Halaman {currentPage} dari {totalPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -8,7 +8,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, GeoJSON } from "react-leaflet";
+import { point } from "@turf/helpers";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import api from "../api/client";
@@ -160,6 +162,29 @@ export default function EditDetailPage() {
   });
 
   /* ── Form state ─────────────── */
+  const [geojson, setGeojson] = useState<any>(null);
+  useEffect(() => {
+    fetch("/MapRohul.geojson")
+      .then((r) => r.json())
+      .then((d) => setGeojson(d))
+      .catch((e) => console.warn("GeoJSON load error:", e));
+  }, []);
+
+  const checkInPolygon = (pos: [number, number]) => {
+    if (!geojson || !geojson.features) return true;
+    try {
+      const pt = point([pos[1], pos[0]]); // GeoJSON uses [lng, lat]
+      for (const feature of geojson.features) {
+        if (booleanPointInPolygon(pt, feature)) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      console.warn("Polygon check failed", e);
+      return true;
+    }
+  };
   const [step1, setStep1] = useState({
     nama_pelapor: "", waktu_kejadian: "", kecamatan_id: "", lokasi_text: "",
     latitude: "", longitude: "",
@@ -222,6 +247,10 @@ export default function EditDetailPage() {
   }, [laporan]);
 
   const handleMapClick = (lat: number, lng: number) => {
+    if (!checkInPolygon([lat, lng])) {
+      alert("Peringatan: Titik koordinat berada di luar jangkauan wilayah polygon!");
+      return;
+    }
     setPosition([lat, lng]);
     setStep1(prev => ({ ...prev, latitude: String(lat.toFixed(6)), longitude: String(lng.toFixed(6)) }));
   };
@@ -370,7 +399,7 @@ export default function EditDetailPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tanggal & Waktu Kejadian</label>
-                      <input required type="datetime-local" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                      <input required type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
                         value={step1.waktu_kejadian} onChange={e => setStep1(p=>({...p, waktu_kejadian: e.target.value}))} />
                     </div>
                     <div>
@@ -392,13 +421,13 @@ export default function EditDetailPage() {
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Latitude</label>
                         <input type="number" step="0.000001" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
                           value={step1.latitude}
-                          onChange={e => { setStep1(p=>({...p, latitude: e.target.value})); const lat=parseFloat(e.target.value); const lng=parseFloat(step1.longitude); if(!isNaN(lat)&&!isNaN(lng)) setPosition([lat, lng]); }} />
+                          onChange={e => { setStep1(p=>({...p, latitude: e.target.value})); const lat=parseFloat(e.target.value); const lng=parseFloat(step1.longitude); if(!isNaN(lat)&&!isNaN(lng)) { if(!checkInPolygon([lat, lng])) alert("Di luar polygon"); else setPosition([lat, lng]); } }} />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Longitude</label>
                         <input type="number" step="0.000001" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
                           value={step1.longitude}
-                          onChange={e => { setStep1(p=>({...p, longitude: e.target.value})); const lat=parseFloat(step1.latitude); const lng=parseFloat(e.target.value); if(!isNaN(lat)&&!isNaN(lng)) setPosition([lat, lng]); }} />
+                          onChange={e => { setStep1(p=>({...p, longitude: e.target.value})); const lat=parseFloat(step1.latitude); const lng=parseFloat(e.target.value); if(!isNaN(lat)&&!isNaN(lng)) { if(!checkInPolygon([lat, lng])) alert("Di luar polygon"); else setPosition([lat, lng]); } }} />
                       </div>
                     </div>
                   </div>
@@ -420,13 +449,29 @@ export default function EditDetailPage() {
                       </div>
                     </div>
                     <div style={{ height: 280, borderRadius: 12, overflow: "hidden", border: "2px solid #E2E8F0" }}>
-                      <MapContainer center={position ?? [0.95, 100.25]} zoom={10} style={{ height: "100%", width: "100%" }} zoomControl={false}>
-                        <TileLayer key={activeLayer}
+                      <MapContainer center={position ?? [0.95, 100.25]} zoom={10} minZoom={5} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} style={{ height: "100%", width: "100%" }} zoomControl={false}>
+                        <TileLayer key={`base-${activeLayer}`}
                           url={activeLayer === "satellite"
                             ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
                           maxZoom={19} />
-                        {activeLayer === "satellite" && <TileLayer key="satellite-labels" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="shadowPane" />}
+                        {activeLayer === "satellite" && <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="shadowPane" />}
+                        {geojson && (geojson.features?.length ?? 0) > 0 && (
+                          <GeoJSON
+                            key={`boundary-${activeLayer}-${geojson.features.length}`}
+                            data={geojson as any}
+                            style={{
+                              color: activeLayer === "satellite" ? "#FACC15" : "#1E40AF",
+                              weight: 2.5, opacity: 1,
+                              fillColor: activeLayer === "satellite" ? "#FACC15" : "#3B82F6",
+                              fillOpacity: 0.07, dashArray: "4 3",
+                            }}
+                            onEachFeature={(feature, layer) => {
+                              const name = feature.properties?.NAMOBJ ?? feature.properties?.nama_kecamatan ?? "";
+                              if (name) layer.bindTooltip(name, { permanent: false, direction: "center" });
+                            }}
+                          />
+                        )}
                         <MapPicker position={position} onPick={handleMapClick} />
                       </MapContainer>
                     </div>
@@ -495,10 +540,13 @@ export default function EditDetailPage() {
                               </div>
                             )}
                             {(field.type === "text" || field.type === "number") && (
-                              <input type={field.type}
+                              <input
+                                type={field.type === "number" ? "number" : "text"}
+                                min={field.type === "number" ? 0 : undefined}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                                 value={detailData[field.name] ?? ""}
                                 onChange={e => setDetailData(p => ({ ...p, [field.name]: e.target.value }))}
+                                onKeyDown={field.type === "number" ? (e) => { if (["e", "E", "+", "-", ".", ","].includes(e.key)) e.preventDefault(); } : undefined}
                                 placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
                               />
                             )}

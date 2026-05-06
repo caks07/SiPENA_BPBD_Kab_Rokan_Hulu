@@ -6,31 +6,34 @@ import api from "../api/client";
 import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
 import { useAuth } from "../state/AuthContext";
+import { useEffect } from "react";
 
 
 const SIAGA_STYLE: Record<string, { cls: string; label: string }> = {
-  siaga1: { cls: "bg-red-500 text-white",          label: "Siaga 1" },
-  siaga2: { cls: "bg-orange-500 text-white",        label: "Siaga 2" },
-  siaga3: { cls: "bg-yellow-400 text-slate-900",    label: "Siaga 3" },
-  selesai:{ cls: "bg-green-500 text-white",         label: "Selesai" },
+  siaga1: { cls: "bg-red-500 text-white", label: "Siaga 1" },
+  siaga2: { cls: "bg-orange-500 text-white", label: "Siaga 2" },
+  siaga3: { cls: "bg-yellow-400 text-slate-900", label: "Siaga 3" },
+  selesai: { cls: "bg-green-500 text-white", label: "Selesai" },
 };
 const JENIS_DOT: Record<string, string> = {
-  banjir:"bg-blue-500", banjir_bandang:"bg-blue-700", tanah_longsor:"bg-orange-600",
-  cuaca_ekstrim:"bg-sky-500", kekeringan:"bg-yellow-500", karhutla:"bg-red-600",
-  wabah:"bg-purple-600", gempa_bumi:"bg-slate-600", konflik_sosial:"bg-pink-600",
+  banjir: "bg-blue-500", banjir_bandang: "bg-blue-700", tanah_longsor: "bg-orange-600",
+  cuaca_ekstrim: "bg-sky-500", kekeringan: "bg-yellow-500", karhutla: "bg-red-600",
+  wabah: "bg-purple-600", gempa_bumi: "bg-slate-600", konflik_sosial: "bg-pink-600",
 };
 
 const ALL_JENIS = [
-  "banjir", "banjir_bandang", "tanah_longsor", "cuaca_ekstrim", 
+  "banjir", "banjir_bandang", "tanah_longsor", "cuaca_ekstrim",
   "kekeringan", "karhutla", "wabah", "gempa_bumi", "konflik_sosial"
 ];
 
 export default function RekapKecPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [filterJenis,   setFilterJenis]   = useState("semua");
-  const [tanggalDari,   setTanggalDari]   = useState("");
+  const [filterJenis, setFilterJenis] = useState("semua");
+  const [tanggalDari, setTanggalDari] = useState("");
   const [tanggalSampai, setTanggalSampai] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const { data: laporanRaw = [], isLoading } = useQuery({
     queryKey: ["rekap-kecamatan"],
@@ -48,10 +51,16 @@ export default function RekapKecPage() {
 
   const filtered = laporan.filter((item) => {
     if (filterJenis !== "semua" && item.jenis_bencana !== filterJenis) return false;
-    if (tanggalDari  && new Date(item.waktu_kejadian) < new Date(tanggalDari))  return false;
+    if (tanggalDari && new Date(item.waktu_kejadian) < new Date(tanggalDari)) return false;
     if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai)) return false;
     return true;
   });
+
+  // Reset pagination when filters change
+  useEffect(() => { setCurrentPage(1); }, [filterJenis, tanggalDari, tanggalSampai]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
 
 
@@ -103,7 +112,7 @@ export default function RekapKecPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {["Tanggal","Jenis Bencana","Lokasi","Pelapor","Status Siaga","Korban (LR/LB/M)","Aksi"].map((h) => (
+                  {["Tanggal", "Jenis Bencana", "Lokasi", "Pelapor", "Status Siaga", "Korban (LR/LB/M)", "Aksi"].map((h) => (
                     <th key={h} className="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -119,7 +128,7 @@ export default function RekapKecPage() {
                     <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">search_off</span>
                     Tidak ada data laporan
                   </td></tr>
-                ) : filtered.map((item: any) => {
+                ) : paginatedData.map((item: any) => {
                   const siaga = SIAGA_STYLE[item.status] ?? SIAGA_STYLE.siaga3;
                   return (
                     <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
@@ -154,10 +163,29 @@ export default function RekapKecPage() {
               </tbody>
             </table>
             {filtered.length > 0 && (
-              <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+              <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <p className="text-xs text-slate-500">
-                  Menampilkan <strong>{filtered.length}</strong> dari <strong>{laporan.length}</strong> entri
+                  Menampilkan <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri
                 </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                  </button>
+                  <span className="text-[11px] font-bold text-slate-600">
+                    Hal {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
