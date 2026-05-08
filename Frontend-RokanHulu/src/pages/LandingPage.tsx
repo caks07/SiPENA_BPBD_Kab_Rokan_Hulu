@@ -27,7 +27,7 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "Inter, sans-serif", backgroundColor: "#F4F5F7" }}>
       {/* Navbar */}
       <nav style={{ background: "rgba(28,31,43,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-           className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 shadow-xl">
+        className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 shadow-xl">
         <div className="flex items-center gap-3">
           <img src="/logo_sipena.png" alt="Logo SIPENA" className="h-12 w-auto" />
           <span className="text-2xl font-black text-white tracking-tighter">SiPENA</span>
@@ -47,45 +47,88 @@ export default function LandingPage() {
           backgroundPosition: "center"
         }} />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(28,31,43,0.6), rgba(28,31,43,0.9))" }} />
-        
+
         {/* Emblems */}
-        <div className="absolute top-4 left-4 sm:top-8 sm:left-8 w-16 sm:w-20 md:w-28 lg:w-36 z-20">
-          <img src="/emblem_rohul.png" alt="Emblem Rohul" className="w-full h-auto object-contain drop-shadow-lg" />
+        <div className="absolute top-4 left-4 sm:top-8 sm:left-8 w-12 sm:w-16 md:w-20 lg:w-28 z-20">
+          <img
+            src="/emblem_rohul.png"
+            alt="Emblem Rohul"
+            className="w-full h-auto object-contain drop-shadow-lg"
+          />
         </div>
-        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 w-16 sm:w-20 md:w-28 lg:w-36 z-20">
-          <img src="/emblem_bpbd.png" alt="Emblem BPBD" className="w-full h-auto object-contain drop-shadow-lg" />
+
+        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 w-12 sm:w-16 md:w-20 lg:w-28 z-20">
+          <img
+            src="/emblem_bpbd.png"
+            alt="Emblem BPBD"
+            className="w-full h-auto object-contain drop-shadow-lg"
+          />
         </div>
-        
+
         <div className="absolute bottom-0 left-0 sm:left-2 flex items-end z-20">
           <div className="relative z-10 flex flex-col items-center">
-            <img src="/emblem_bupati_setengah.png" alt="Emblem Bupati" className="h-32 sm:h-48 md:h-64 lg:h-80 w-auto object-contain drop-shadow-lg" />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-1 text-center">
-              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">Anton, ST, MM</p>
-              <p className="text-[5px] sm:text-[8px] md:text-[10px] lg:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">Bupati Rokan Hulu</p>
+            <img
+              src="/emblem_bupati_setengah.png"
+              alt="Emblem Bupati"
+              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
+              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
+                Anton, ST, MM
+              </p>
+              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
+                Bupati Rokan Hulu
+              </p>
             </div>
           </div>
-          <div className="-ml-4 sm:-ml-8 md:-ml-10 relative z-0 flex flex-col items-center">
-            <img src="/emblem_wakilBupati_setengah.png" alt="Emblem Wakil Bupati" className="h-32 sm:h-48 md:h-64 lg:h-80 w-auto object-contain drop-shadow-lg" />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-1 text-center">
-              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">H. Syafaruddin Poti, SH., MM.</p>
-              <p className="text-[5px] sm:text-[8px] md:text-[10px] lg:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">Wakil Bupati Rokan Hulu</p>
+
+          <div className="-ml-3 sm:-ml-6 md:-ml-8 relative z-0 flex flex-col items-center">
+            <img
+              src="/emblem_wakilBupati_setengah.png"
+              alt="Emblem Wakil Bupati"
+              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
+              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
+                H. Syafaruddin Poti, SH., MM.
+              </p>
+              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
+                Wakil Bupati Rokan Hulu
+              </p>
             </div>
           </div>
         </div>
-        
+
         <div className="absolute bottom-0 right-0 sm:right-2 flex items-end z-20">
           <div className="relative z-0 flex flex-col items-center">
-            <img src="/emblem_sekretarisDaerah.png" alt="Emblem Sekretaris Daerah" className="h-32 sm:h-48 md:h-64 lg:h-80 w-auto object-contain drop-shadow-lg" />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-1 text-center">
-              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">H. Drs. Yusmar, M.Si</p>
-              <p className="text-[5px] sm:text-[8px] md:text-[10px] lg:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">Sekretaris Daerah Rokan Hulu</p>
+            <img
+              src="/emblem_sekretarisDaerah.png"
+              alt="Emblem Sekretaris Daerah"
+              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
+              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
+                H. Drs. Yusmar, M.Si
+              </p>
+              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
+                Sekretaris Daerah Rokan Hulu
+              </p>
             </div>
           </div>
-          <div className="-ml-4 sm:-ml-8 md:-ml-10 relative z-10 flex flex-col items-center">
-            <img src="/emblem_kepalaBPBD.png" alt="Emblem Kepala BPBD" className="h-32 sm:h-48 md:h-64 lg:h-80 w-auto object-contain drop-shadow-lg" />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-1 text-center">
-              <p className="text-[6px] sm:text-[9px] md:text-[11px] lg:text-xs font-bold text-white leading-tight drop-shadow-md">H. Zulhendri, S.Sos.,M.IP</p>
-              <p className="text-[5px] sm:text-[8px] md:text-[10px] lg:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">Kalaksa BPBD Rokan Hulu</p>
+
+          <div className="-ml-3 sm:-ml-6 md:-ml-8 relative z-10 flex flex-col items-center">
+            <img
+              src="/emblem_kepalaBPBD.png"
+              alt="Emblem Kepala BPBD"
+              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
+              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
+                H. Zulhendri, S.Sos.,M.IP
+              </p>
+              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
+                Kalaksa BPBD Rokan Hulu
+              </p>
             </div>
           </div>
         </div>
@@ -130,7 +173,7 @@ export default function LandingPage() {
       <footer style={{ background: "#1C1F2B", borderTop: "1px solid rgba(255,255,255,0.1)" }}
         className="px-8 md:px-16 py-16 text-sm text-slate-400">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-          
+
           {/* Brand & Copyright */}
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -138,7 +181,7 @@ export default function LandingPage() {
               <span className="text-2xl font-black text-white tracking-tighter">SiPENA</span>
             </div>
             <p className="leading-relaxed mb-4 max-w-sm">
-              Sistem Informasi Peringatan Dini & Laporan Bencana Terpadu.<br/>
+              Sistem Informasi Peringatan Dini & Laporan Bencana Terpadu.<br />
               Badan Penanggulangan Bencana Daerah (BPBD) Kabupaten Rokan Hulu.
             </p>
             <p className="text-xs text-slate-500">© 2026 BPBD Kabupaten Rokan Hulu.</p>

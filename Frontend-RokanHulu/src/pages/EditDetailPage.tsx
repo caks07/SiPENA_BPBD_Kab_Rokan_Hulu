@@ -433,7 +433,7 @@ export default function EditDetailPage() {
       <SipenaNav />
       <NewsTicker />
 
-      <main className="mt-24 pb-16 px-4">
+      <main className="mt-[104px] pb-16 px-4">
         <div className="max-w-4xl mx-auto space-y-6">
 
           {/* Breadcrumb */}

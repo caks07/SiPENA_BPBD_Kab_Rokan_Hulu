@@ -68,7 +68,7 @@ export default function RekapKecPage() {
     <div className="bg-[#F8F9FA] min-h-screen" style={{ fontFamily: "Inter, sans-serif" }}>
       <SipenaNav />
       <NewsTicker />
-      <main className="mt-24 p-8 min-h-screen">
+      <main className="mt-[104px] p-8 min-h-screen">
         <div className="max-w-7xl mx-auto space-y-8">
 
           {/* Header */}

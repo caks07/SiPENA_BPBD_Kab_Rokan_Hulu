@@ -46,17 +46,20 @@ export default function NewsTicker() {
           100% { transform: translateX(-100%); }
         }
         .sipena-ticker-inner {
-          animation: tickerMove ${Math.max(30, items.length * 8)}s linear infinite;
+          animation: tickerMove ${Math.max(40, items.length * 10)}s linear infinite;
           white-space: nowrap;
+          display: flex;
+          align-items: center;
+          height: 100%;
         }
       `}</style>
       <div
         style={{
           position: "fixed",
-          top: 64,
+          top: 75,
           left: 0,
           right: 0,
-          height: 32,
+          height: 40,
           background: "#F39200",
           zIndex: 999,
           overflow: "hidden",
@@ -65,7 +68,7 @@ export default function NewsTicker() {
         }}
       >
         <div className="sipena-ticker-inner"
-          style={{ color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em" }}>
+          style={{ color: "white", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", lineHeight: 1 }}>
           {tickerText}
         </div>
       </div>

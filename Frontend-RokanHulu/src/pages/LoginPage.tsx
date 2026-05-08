@@ -35,12 +35,12 @@ export default function LoginPage() {
         </div>
 
         {/* Login Container */}
-        <div className="w-full max-w-[1100px] grid md:grid-cols-2 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-outline-variant overflow-hidden z-10 relative">
+        <div className="w-full max-w-[1300px] grid md:grid-cols-2 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-outline-variant overflow-hidden z-10 relative">
           
           {/* Branding/Visual Side */}
           <div className="hidden md:flex flex-col justify-between p-12 text-white relative overflow-hidden">
             <div className="absolute inset-0 z-0">
-              <img src="/bg_halaman_login.jpeg" alt="Background" className="w-full h-full object-cover" />
+              <img src="/bg_login.PNG" alt="Background" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/60 z-10"></div>
             </div>
 
@@ -160,17 +160,6 @@ export default function LoginPage() {
                 KEMBALI KE BERANDA
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* System Status Footer Overlay */}
-        <div className="absolute bottom-6 left-0 right-0 px-[24px] flex flex-col md:flex-row justify-between items-center gap-2 pointer-events-none">
-          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-auto">
-            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="font-label-caps text-[10px] font-bold text-slate-600">SYSTEM READY: STABLE</span>
-          </div>
-          <div className="bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-auto">
-            <span className="font-label-caps text-[10px] font-bold text-slate-500">GIS V 2.4.0 — © 2024 BPBD ROKAN HULU</span>
           </div>
         </div>
       </main>

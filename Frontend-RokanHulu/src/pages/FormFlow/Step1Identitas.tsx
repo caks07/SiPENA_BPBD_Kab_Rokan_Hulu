@@ -144,6 +144,11 @@ export default function Step1Identitas() {
   const [latInput,  setLatInput]  = useState(laporan.latitude  ? String(laporan.latitude)  : "");
   const [lngInput,  setLngInput]  = useState(laporan.longitude ? String(laporan.longitude) : "");
 
+  // Geolocation state
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationSuccess, setLocationSuccess] = useState<string | null>(null);
+
   const { data: kecamatans = [], isLoading: loadingKec, isError: errorKec } = useQuery({
     queryKey: ["kecamatan-list"],
     queryFn: async () => {
@@ -214,6 +219,44 @@ export default function Step1Identitas() {
       }
       setPosition([parsedLat, parsedLng]);
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Browser tidak mendukung fitur lokasi saat ini.");
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setLocationError(null);
+    setLocationSuccess(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        setLatInput(lat.toFixed(6));
+        setLngInput(lng.toFixed(6));
+        setPosition([lat, lng]);
+        // Koordinat akan disimpan ke store saat submit
+        setIsGettingLocation(false);
+        setLocationSuccess("Lokasi saat ini berhasil digunakan.");
+      },
+      (err) => {
+        let message = "Gagal mengambil lokasi saat ini.";
+        if (err.code === err.PERMISSION_DENIED) {
+          message = "Izin lokasi ditolak. Silakan aktifkan izin lokasi atau isi koordinat manual.";
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          message = "Lokasi saat ini tidak tersedia.";
+        } else if (err.code === err.TIMEOUT) {
+          message = "Waktu pengambilan lokasi habis. Silakan coba lagi.";
+        }
+        setLocationError(message);
+        setIsGettingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -313,6 +356,40 @@ export default function Step1Identitas() {
                     </option>
                   ))}
                 </select>
+              )}
+            </div>
+
+            {/* Tombol Gunakan Lokasi Saat Ini — muncul setelah pilih kecamatan */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Gunakan Posisi GPS Saat Ini</label>
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={isGettingLocation}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
+                  isGettingLocation
+                    ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                    : "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 active:scale-95"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {isGettingLocation ? "sync" : "my_location"}
+                </span>
+                {isGettingLocation ? "Mengambil lokasi..." : "Gunakan Lokasi Saat Ini"}
+              </button>
+
+              {/* Feedback messages */}
+              {locationSuccess && (
+                <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-xs rounded-lg px-3 py-2">
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                  {locationSuccess}
+                </div>
+              )}
+              {locationError && (
+                <div className="mt-2 flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-3 py-2">
+                  <span className="material-symbols-outlined text-[14px]">error</span>
+                  {locationError}
+                </div>
               )}
             </div>
 

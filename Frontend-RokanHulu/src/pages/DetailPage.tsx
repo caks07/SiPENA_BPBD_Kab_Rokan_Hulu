@@ -401,7 +401,7 @@ export default function DetailPage() {
     <div className="bg-[#F8F9FA] text-[#201A17] min-h-screen" style={{ fontFamily: "Inter, sans-serif" }}>
       <SipenaNav />
       <NewsTicker />
-      <main className="mt-24 px-4 pb-12">
+      <main className="mt-[104px] px-4 pb-12">
         <div className="max-w-6xl mx-auto space-y-6 py-6">
 
           {/* Header */}
@@ -640,6 +640,28 @@ export default function DetailPage() {
                   </div>
                 )}
               </div>
+
+              {/* Google Maps Card — tampil hanya jika koordinat valid */}
+              {hasCoord && (
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border-b border-green-100">
+                    <span className="material-symbols-outlined text-green-600 text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
+                    <p className="text-sm font-bold text-green-700 uppercase tracking-wider">Buka Lokasi di Google Maps</p>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-3">
+                    <p className="text-xs text-slate-500 font-mono">{lat.toFixed(5)}, {lng.toFixed(5)}</p>
+                    <a
+                      href={`https://www.google.com/maps?q=${lat},${lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition-colors active:scale-95 shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                      Lihat di Google Maps
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Fasilitas Umum Terdampak */}
               {laporan.fasilitas_terdampak?.length > 0 && (

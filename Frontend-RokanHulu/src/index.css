@@ -70,7 +70,38 @@
 }
 
 @layer base {
+  /* Root font-size: 19px — semua rem value scale secara proporsional */
+  html {
+    font-size: 19px;
+  }
+
   body {
     @apply bg-background text-on-background font-sans min-h-screen antialiased;
+    line-height: 1.7;
   }
+
+  /* ── Heading hierarchy ── */
+  h1 { font-size: 2rem;    font-weight: 700; line-height: 1.25; }
+  h2 { font-size: 1.65rem; font-weight: 700; line-height: 1.3;  }
+  h3 { font-size: 1.35rem; font-weight: 600; line-height: 1.35; }
+  h4 { font-size: 1.15rem; font-weight: 600; line-height: 1.4;  }
+
+  /* ── Form elements ── */
+  input, select, textarea, button {
+    font-size: 1rem;
+  }
+
+  /* ── Override Tailwind text-* classes ─────────────────────── */
+  /* text-[10px] / text-[11px] inline overrides tidak bisa di-handle di sini,
+     tapi class utility Tailwind di bawah ini menutupi mayoritas kasus */
+  .text-xs   { font-size: 0.82rem  !important; line-height: 1.5 !important; }
+  .text-sm   { font-size: 0.95rem  !important; line-height: 1.6 !important; }
+  .text-base { font-size: 1.05rem  !important; line-height: 1.6 !important; }
+  .text-lg   { font-size: 1.2rem   !important; line-height: 1.5 !important; }
+  .text-xl   { font-size: 1.35rem  !important; line-height: 1.45 !important; }
+  .text-2xl  { font-size: 1.6rem   !important; line-height: 1.35 !important; }
+  .text-3xl  { font-size: 1.9rem   !important; line-height: 1.25 !important; }
+
+  /* font-mono tetap terbaca */
+  .font-mono { font-size: inherit; }
 }
