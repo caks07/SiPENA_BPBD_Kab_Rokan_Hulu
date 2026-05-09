@@ -537,12 +537,12 @@ export default function EditDetailPage() {
                       </div>
                     </div>
                     <div style={{ height: 280, borderRadius: 12, overflow: "hidden", border: "2px solid #E2E8F0" }}>
-                      <MapContainer center={position ?? [0.95, 100.25]} zoom={10} minZoom={5} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} style={{ height: "100%", width: "100%" }} zoomControl={false}>
+                      <MapContainer center={position ?? [0.95, 100.25]} zoom={10} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} style={{ height: "100%", width: "100%" }} zoomControl={false}>
                         <TileLayer key={`base-${activeLayer}`}
                           url={activeLayer === "satellite"
                             ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
-                          maxZoom={19} />
+                          maxZoom={activeLayer === "satellite" ? 17 : 19} />
                         {activeLayer === "satellite" && <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="shadowPane" />}
                         {geojson && (geojson.features?.length ?? 0) > 0 && (
                           <GeoJSON

@@ -606,14 +606,14 @@ export default function DetailPage() {
                           </button>
                         ))}
                       </div>
-                      <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false}>
+                      <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxZoom={mapLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false}>
                         <TileLayer
                           key={mapLayer}
                           url={mapLayer === "satellite"
                             ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
                           attribution={mapLayer === "satellite" ? "Tiles © Esri" : "© OpenStreetMap"}
-                          maxZoom={19}
+                          maxZoom={mapLayer === "satellite" ? 17 : 19}
                         />
                         {mapLayer === "satellite" && (
                           <TileLayer url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />

@@ -169,6 +169,7 @@ export default function DashboardMapPage() {
           center={[0.95, 100.35]}
           zoom={9}
           minZoom={5}
+          maxZoom={activeLayer === "satellite" ? 17 : 19}
           maxBounds={[[6.0, 95.0], [-6.0, 109.0]]}
           zoomControl={false}
           style={{ width: "100%", height: "100%" }}
@@ -182,7 +183,7 @@ export default function DashboardMapPage() {
             url={activeLayer === "osm"
               ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
-            maxZoom={19}
+            maxZoom={activeLayer === "satellite" ? 17 : 19}
           />
           {activeLayer === "satellite" && (
             <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />

@@ -456,14 +456,14 @@ export default function Step1Identitas() {
               </div>
             </div>
             <div className="rounded-xl overflow-hidden border-2 border-slate-300 shadow-md" style={{ height: 340 }}>
-              <MapContainer center={position ?? [0.78, 100.42]} zoom={9} minZoom={5} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full">
+              <MapContainer center={position ?? [0.78, 100.42]} zoom={9} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full">
                 <TileLayer
                   key={`base-${activeLayer}`}
                   url={activeLayer === "satellite"
                     ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                     : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
                   attribution={activeLayer === "satellite" ? "Tiles © Esri" : "© OpenStreetMap"}
-                  maxZoom={19}
+                  maxZoom={activeLayer === "satellite" ? 17 : 19}
                 />
                 {activeLayer === "satellite" && (
                   <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
