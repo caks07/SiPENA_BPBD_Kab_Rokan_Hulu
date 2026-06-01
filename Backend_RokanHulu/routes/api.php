@@ -7,6 +7,10 @@ use App\Http\Controllers\OptionsController;
 use App\Http\Controllers\DashboardController;
 
 // Public Routes
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
+
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/geojson/kecamatan', [GeoJsonController::class, 'kecamatan']);
 Route::get('/kecamatan', [GeoJsonController::class, 'listKecamatan']); // Dropdown list
