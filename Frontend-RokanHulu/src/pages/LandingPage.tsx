@@ -13,6 +13,63 @@ const DISASTER_CARDS = [
   { id: "konflik_sosial", label: "Konflik Sosial", icon: "groups", desc: "Laporan gangguan keamanan atau konflik sosial antar kelompok masyarakat.", color: "#2C3E50" },
 ];
 
+function OfficialFigure({
+  src,
+  name,
+  role,
+}: {
+  src: string;
+  name: string;
+  role: string;
+}) {
+  return (
+    <div className="relative w-[155px] xl:w-[180px] 2xl:w-[205px] h-[265px] xl:h-[295px] 2xl:h-[325px] flex items-end justify-center overflow-hidden bg-transparent">
+      <img
+        src={src}
+        alt={name}
+        className="h-[255px] xl:h-[285px] 2xl:h-[315px] w-auto max-w-none object-contain object-bottom drop-shadow-lg"
+      />
+
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent pt-12 pb-4 px-2 text-center">
+        <p className="text-sm xl:text-base font-bold text-white leading-tight truncate">
+          {name}
+        </p>
+        <p className="text-xs xl:text-sm text-amber-400 font-bold leading-tight truncate mt-1">
+          {role}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function OfficialFigureCompact({
+  src,
+  name,
+  role,
+}: {
+  src: string;
+  name: string;
+  role: string;
+}) {
+  return (
+    <div className="relative w-[70px] sm:w-[105px] md:w-[130px] lg:w-[150px] flex flex-col items-center">
+      <img
+        src={src}
+        alt={name}
+        className="h-[88px] sm:h-[123px] md:h-[158px] lg:h-[193px] w-auto object-contain object-bottom drop-shadow-lg"
+      />
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent pt-12 pb-2 px-1 text-center">
+        <p className="text-[7px] sm:text-[9px] md:text-[10px] lg:text-[11px] font-bold text-white leading-tight truncate">
+          {name}
+        </p>
+        <p className="text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10px] text-amber-400 font-semibold mt-0.5 truncate">
+          {role}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const { setJenisBencana, resetForm } = useFormStore();
@@ -27,7 +84,7 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "Inter, sans-serif", backgroundColor: "#F4F5F7" }}>
       {/* Navbar */}
       <nav style={{ background: "rgba(28,31,43,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-        className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 shadow-xl">
+        className="flex justify-between items-center px-6 h-20 w-full fixed top-0 z-50 shadow-xl">
         <div className="flex items-center gap-3">
           <img src="/logo_sipena.png" alt="Logo SIPENA" className="h-12 w-auto" />
           <span className="text-2xl font-black text-white tracking-tighter">SiPENA</span>
@@ -40,7 +97,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative flex items-center justify-center overflow-hidden" style={{ height: 512, marginTop: 64 }}>
+      <section className="relative flex items-center justify-center overflow-hidden h-[440px] sm:h-[500px] md:h-[560px] xl:h-[512px] mt-20">
         <div className="absolute inset-0" style={{
           backgroundImage: "url('/bg_landingpage.png')",
           backgroundSize: "cover",
@@ -65,81 +122,39 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="absolute bottom-0 left-0 sm:left-2 flex items-end z-20">
-          <div className="relative z-10 flex flex-col items-center">
-            <img
-              src="/emblem_bupati_setengah.png"
-              alt="Emblem Bupati"
-              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
-              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
-                Anton, ST, MM
-              </p>
-              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
-                Bupati Rokan Hulu
-              </p>
-            </div>
-          </div>
-
-          <div className="-ml-3 sm:-ml-6 md:-ml-8 relative z-0 flex flex-col items-center">
-            <img
-              src="/emblem_wakilBupati_setengah.png"
-              alt="Emblem Wakil Bupati"
-              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
-              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
-                H. Syafaruddin Poti, SH., MM.
-              </p>
-              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
-                Wakil Bupati Rokan Hulu
-              </p>
-            </div>
-          </div>
+        {/* Desktop Officials Layout (2 left, 2 right) - xl screens and above */}
+        <div className="hidden xl:flex absolute bottom-0 left-0 items-end z-20 gap-0">
+          <OfficialFigure src="/emblem_bupati_setengah.png" name="Anton, ST, MM" role="Bupati Rokan Hulu" />
+          <OfficialFigure src="/emblem_wakilBupati_setengah.png" name="H. Syafaruddin Poti, SH., MM." role="Wakil Bupati" />
         </div>
 
-        <div className="absolute bottom-0 right-0 sm:right-2 flex items-end z-20">
-          <div className="relative z-0 flex flex-col items-center">
-            <img
-              src="/emblem_sekretarisDaerah.png"
-              alt="Emblem Sekretaris Daerah"
-              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
-              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
-                H. Drs. Yusmar, M.Si
-              </p>
-              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
-                Sekretaris Daerah Rokan Hulu
-              </p>
-            </div>
-          </div>
-
-          <div className="-ml-3 sm:-ml-6 md:-ml-8 relative z-10 flex flex-col items-center">
-            <img
-              src="/emblem_kepalaBPBD.png"
-              alt="Emblem Kepala BPBD"
-              className="h-28 sm:h-36 md:h-48 lg:h-60 w-auto object-contain drop-shadow-lg"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-2 px-2 text-center">
-              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-white leading-tight drop-shadow-md">
-                H. Zulhendri, S.Sos.,M.IP
-              </p>
-              <p className="text-[8px] sm:text-[10px] md:text-[11px] text-amber-400 font-semibold leading-tight drop-shadow-md mt-0.5">
-                Kalaksa BPBD Rokan Hulu
-              </p>
-            </div>
-          </div>
+        <div className="hidden xl:flex absolute bottom-0 right-0 items-end z-20 gap-0">
+          <OfficialFigure src="/emblem_sekretarisDaerah.png" name="H. Drs. Yusmar, M.Si" role="Sekda Rohul" />
+          <OfficialFigure src="/emblem_kepalaBPBD.png" name="H. Zulhendri, S.Sos., M.IP" role="Kalaksa BPBD" />
         </div>
 
-        <div className="relative z-10 text-center px-4 max-w-4xl pt-8 sm:pt-0">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight drop-shadow-lg leading-tight">
-            Laporan Cepat Kejadian Bencana<br />Kabupaten Rokan Hulu
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-white/80 font-light tracking-wide">
-            Sistem Pelaporan dan Monitoring Bencana Terintegrasi
-          </p>
+        {/* Compact/Mobile/Tablet Officials Layout - below xl screens */}
+        <div className="xl:hidden absolute bottom-0 left-2 sm:left-4 flex items-end z-20">
+          <OfficialFigureCompact src="/emblem_bupati_setengah.png" name="Anton, ST, MM" role="Bupati Rokan Hulu" />
+          <OfficialFigureCompact src="/emblem_wakilBupati_setengah.png" name="H. Syafaruddin Poti, SH., MM." role="Wakil Bupati" />
+        </div>
+
+        <div className="xl:hidden absolute bottom-0 right-2 sm:right-4 flex items-end z-20">
+          <OfficialFigureCompact src="/emblem_sekretarisDaerah.png" name="H. Drs. Yusmar, M.Si" role="Sekda Rohul" />
+          <OfficialFigureCompact src="/emblem_kepalaBPBD.png" name="H. Zulhendri, S.Sos., M.IP" role="Kalaksa BPBD" />
+        </div>
+
+        <div className="absolute inset-x-0 top-[112px] sm:top-[130px] md:top-[150px] xl:top-1/2 xl:-translate-y-1/2 z-30 px-4 text-center">
+          <div className="max-w-[760px] mx-auto">
+            <h1 className="text-[27px] sm:text-[36px] md:text-[46px] xl:text-[52px] leading-[1.12] font-black text-white uppercase tracking-tight drop-shadow-lg">
+              <span className="block">Laporan Cepat Kejadian</span>
+              <span className="block">Bencana</span>
+              <span className="block">Kabupaten Rokan Hulu</span>
+            </h1>
+            <p className="text-xs sm:text-lg md:text-xl text-white/80 font-light tracking-wide mt-3">
+              Sistem Pelaporan dan Monitoring Bencana Terintegrasi
+            </p>
+          </div>
         </div>
       </section>
 
@@ -152,14 +167,14 @@ export default function LandingPage() {
               style={{ background: card.color }}>
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: "linear-gradient(135deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0) 100%)" }} />
-              <div className="p-10 flex flex-col items-center text-center flex-grow relative z-10">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-6 border border-white/20">
-                  <span className="material-symbols-outlined text-4xl">{card.icon}</span>
+              <div className="p-6 sm:p-10 flex flex-col items-center text-center flex-grow relative z-10">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-4 sm:mb-6 border border-white/20">
+                  <span className="material-symbols-outlined text-3xl sm:text-4xl">{card.icon}</span>
                 </div>
-                <h3 className="text-2xl font-black mb-3 text-white tracking-wide uppercase">{card.label}</h3>
-                <p className="text-white/70 text-sm mb-8 leading-relaxed">{card.desc}</p>
+                <h3 className="text-xl sm:text-2xl font-black mb-2 sm:mb-3 text-white tracking-wide uppercase">{card.label}</h3>
+                <p className="text-white/70 text-xs sm:text-sm mb-6 sm:mb-8 leading-relaxed">{card.desc}</p>
                 <button onClick={() => handleSelect(card.id)}
-                  className="mt-auto w-full py-4 bg-white font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-xs tracking-widest shadow-lg active:scale-95"
+                  className="mt-auto w-full py-3 sm:py-4 bg-white font-bold rounded-xl hover:bg-opacity-90 transition-all uppercase text-[10px] sm:text-xs tracking-widest shadow-lg active:scale-95"
                   style={{ color: card.color }}>
                   Laporkan di sini!
                 </button>

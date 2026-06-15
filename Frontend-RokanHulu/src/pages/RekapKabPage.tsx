@@ -19,25 +19,25 @@ const SIAGA_LABEL: Record<string, string> = {
   siaga1: "Siaga 1", siaga2: "Siaga 2", siaga3: "Siaga 3", selesai: "Selesai",
 };
 const JENIS_DOT: Record<string, string> = {
-  banjir:"bg-blue-500", banjir_bandang:"bg-blue-700", tanah_longsor:"bg-orange-600",
-  cuaca_ekstrim:"bg-sky-500", kekeringan:"bg-yellow-500", karhutla:"bg-red-600",
-  wabah:"bg-purple-600", gempa_bumi:"bg-slate-600", konflik_sosial:"bg-pink-600",
+  banjir: "bg-blue-500", banjir_bandang: "bg-blue-700", tanah_longsor: "bg-orange-600",
+  cuaca_ekstrim: "bg-sky-500", kekeringan: "bg-yellow-500", karhutla: "bg-red-600",
+  wabah: "bg-purple-600", gempa_bumi: "bg-slate-600", konflik_sosial: "bg-pink-600",
 };
 
 const ALL_JENIS = [
-  "banjir", "banjir_bandang", "tanah_longsor", "cuaca_ekstrim", 
+  "banjir", "banjir_bandang", "tanah_longsor", "cuaca_ekstrim",
   "kekeringan", "karhutla", "wabah", "gempa_bumi", "konflik_sosial"
 ];
 
 export default function RekapKabPage() {
-  const navigate  = useNavigate();
-  const { role }  = useAuth();
+  const navigate = useNavigate();
+  const { role } = useAuth();
   const [filterKecamatan, setFilterKecamatan] = useState("semua");
-  const [filterJenis,     setFilterJenis]     = useState("semua");
-  const [filterSiaga,     setFilterSiaga]     = useState("semua");
-  const [tanggalDari,     setTanggalDari]     = useState("");
-  const [tanggalSampai,   setTanggalSampai]   = useState("");
-  const [currentPage,     setCurrentPage]     = useState(1);
+  const [filterJenis, setFilterJenis] = useState("semua");
+  const [filterSiaga, setFilterSiaga] = useState("semua");
+  const [tanggalDari, setTanggalDari] = useState("");
+  const [tanggalSampai, setTanggalSampai] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const queryClient = useQueryClient();
@@ -47,7 +47,7 @@ export default function RekapKabPage() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  
+
   const [deleteModal, setDeleteModal] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -72,10 +72,10 @@ export default function RekapKabPage() {
 
   const filtered = laporan.filter((item) => {
     if (filterKecamatan !== "semua" && String(item.kecamatan_id) !== filterKecamatan) return false;
-    if (filterJenis     !== "semua" && item.jenis_bencana !== filterJenis) return false;
-    if (filterSiaga     !== "semua" && item.status !== filterSiaga)        return false;
-    if (tanggalDari  && new Date(item.waktu_kejadian) < new Date(tanggalDari))  return false;
-    if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai)) return false;
+    if (filterJenis !== "semua" && item.jenis_bencana !== filterJenis) return false;
+    if (filterSiaga !== "semua" && item.status !== filterSiaga) return false;
+    if (tanggalDari && new Date(item.waktu_kejadian) < new Date(tanggalDari)) return false;
+    if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai + "T23:59:59")) return false;
     return true;
   });
 
@@ -101,7 +101,7 @@ export default function RekapKabPage() {
               try {
                 const res = await api.get(`/options/${item.jenis_bencana}`);
                 optionsCache[item.jenis_bencana] = res.data;
-              } catch {}
+              } catch { }
             }
             return { lb: data, options: optionsCache[item.jenis_bencana] };
           } catch { return { lb: item, options: null }; }
@@ -113,52 +113,52 @@ export default function RekapKabPage() {
         const fieldMap = lb.jenis_bencana ? FIELD_OPT_KEYS[lb.jenis_bencana] ?? {} : {};
         const detailStr = lb.detail
           ? Object.entries(lb.detail)
-              .filter(([k]) => !["laporan_id","created_at","updated_at"].includes(k))
-              .map(([k, v]) => {
-                const optKey = fieldMap[k] ?? null;
-                const label = resolveLabel(v, optKey, options);
-                const displayKey = k.replace(/_ids?$/, "").replace(/_/g, " ").toUpperCase();
-                return `${displayKey}: ${label}`;
-              })
-              .filter(s => !s.endsWith(": -") && !s.endsWith(": null") && !s.endsWith(": "))
-              .join("; ")
+            .filter(([k]) => !["laporan_id", "created_at", "updated_at"].includes(k))
+            .map(([k, v]) => {
+              const optKey = fieldMap[k] ?? null;
+              const label = resolveLabel(v, optKey, options);
+              const displayKey = k.replace(/_ids?$/, "").replace(/_/g, " ").toUpperCase();
+              return `${displayKey}: ${label}`;
+            })
+            .filter(s => !s.endsWith(": -") && !s.endsWith(": null") && !s.endsWith(": "))
+            .join("; ")
           : "-";
 
         return {
           // Step 1 — Identitas
-          "No":                 i + 1,
-          "ID Laporan":         lb.id,
-          "Tanggal Kejadian":   lb.waktu_kejadian ? new Date(lb.waktu_kejadian).toLocaleString("id-ID") : "-",
-          "Tanggal Dibuat":     lb.created_at ? new Date(lb.created_at).toLocaleString("id-ID") : "-",
-          "Jenis Bencana":      lb.jenis_bencana?.replace(/_/g," ") ?? "-",
-          "Nama Pelapor":       lb.nama_pelapor ?? "-",
-          "Sumber Laporan":     lb.sumber_laporan ?? "-",
-          "Kecamatan":          lb.nama_kecamatan ?? "-",
-          "Lokasi Teks":        lb.lokasi_text ?? "-",
-          "Latitude":           lb.latitude ?? "-",
-          "Longitude":          lb.longitude ?? "-",
-          "Status Siaga":       SIAGA_LABEL[lb.status] ?? lb.status ?? "-",
+          "No": i + 1,
+          "ID Laporan": lb.id,
+          "Tanggal Kejadian": lb.waktu_kejadian ? new Date(lb.waktu_kejadian).toLocaleString("id-ID") : "-",
+          "Tanggal Dibuat": lb.created_at ? new Date(lb.created_at).toLocaleString("id-ID") : "-",
+          "Jenis Bencana": lb.jenis_bencana?.replace(/_/g, " ") ?? "-",
+          "Nama Pelapor": lb.nama_pelapor ?? "-",
+          "Sumber Laporan": lb.sumber_laporan ?? "-",
+          "Kecamatan": lb.nama_kecamatan ?? "-",
+          "Lokasi Teks": lb.lokasi_text ?? "-",
+          "Latitude": lb.latitude ?? "-",
+          "Longitude": lb.longitude ?? "-",
+          "Status Siaga": SIAGA_LABEL[lb.status] ?? lb.status ?? "-",
 
           // Step 2 — Detail Bencana (stringify)
-          "Detail Bencana":     detailStr,
+          "Detail Bencana": detailStr,
 
           // Step 3 — Korban
-          "Luka Ringan":        lb.korban?.korban_luka_ringan ?? 0,
-          "Luka Berat":         lb.korban?.korban_luka_berat ?? 0,
-          "Meninggal":          lb.korban?.korban_meninggal ?? 0,
-          "Hilang":             lb.korban?.korban_hilang ?? 0,
-          "KK Mengungsi":       lb.korban?.kk_mengungsi ?? 0,
-          "Jiwa Mengungsi":     lb.korban?.jiwa_mengungsi ?? 0,
+          "Luka Ringan": lb.korban?.korban_luka_ringan ?? 0,
+          "Luka Berat": lb.korban?.korban_luka_berat ?? 0,
+          "Meninggal": lb.korban?.korban_meninggal ?? 0,
+          "Hilang": lb.korban?.korban_hilang ?? 0,
+          "KK Mengungsi": lb.korban?.kk_mengungsi ?? 0,
+          "Jiwa Mengungsi": lb.korban?.jiwa_mengungsi ?? 0,
 
           // Step 4 — Kerusakan
           "Rumah Rusak Ringan": lb.kerusakan?.rumah_rusak_ringan ?? 0,
           "Rumah Rusak Sedang": lb.kerusakan?.rumah_rusak_sedang ?? 0,
-          "Rumah Rusak Berat":  lb.kerusakan?.rumah_rusak_berat ?? 0,
-          "Fasilitas Umum":     (lb.fasilitas_terdampak ?? []).join(", ") || "-",
+          "Rumah Rusak Berat": lb.kerusakan?.rumah_rusak_berat ?? 0,
+          "Fasilitas Umum": (lb.fasilitas_terdampak ?? []).join(", ") || "-",
           "Kebutuhan Logistik": (lb.kebutuhan_logistik ?? []).join(", ") || "-",
-          "Catatan Kerusakan":  lb.kerusakan?.catatan_lain ?? "-",
-          "Catatan Fasilitas":  lb.kerusakan?.catatan_fasilitas_umum ?? "-",
-          "Catatan Update":     lb.catatan_update ?? "-",
+          "Catatan Kerusakan": lb.kerusakan?.catatan_lain ?? "-",
+          "Catatan Fasilitas": lb.kerusakan?.catatan_fasilitas_umum ?? "-",
+          "Catatan Update": lb.catatan_update ?? "-",
         };
       });
 
@@ -168,7 +168,7 @@ export default function RekapKabPage() {
       const colWidths = Object.keys(rows[0] ?? {}).map(k => ({ wch: Math.max(k.length + 2, 14) }));
       ws["!cols"] = colWidths;
       XLSX.utils.book_append_sheet(wb, ws, "Rekap Bencana");
-      XLSX.writeFile(wb, `rekap_lengkap_${new Date().toISOString().slice(0,10)}.xlsx`);
+      XLSX.writeFile(wb, `rekap_lengkap_${new Date().toISOString().slice(0, 10)}.xlsx`);
     } catch (e) {
       alert("Gagal export Excel. Coba lagi.");
       console.error(e);
@@ -217,9 +217,9 @@ export default function RekapKabPage() {
       console.error("Screenshot error:", e);
       alert("Gagal mengambil screenshot. " + String(e));
     }
-    finally { 
+    finally {
       if (captureRef.current) captureRef.current.classList.remove("capture-mode");
-      setIsCapturing(false); 
+      setIsCapturing(false);
     }
   };
 
@@ -233,7 +233,7 @@ export default function RekapKabPage() {
         try {
           const { data } = await api.get(`/options/${lb.jenis_bencana}`);
           options = data;
-        } catch {}
+        } catch { }
       }
       generatePdfReport(lb, options);
     } catch { alert("Gagal export PDF."); }
@@ -262,82 +262,163 @@ export default function RekapKabPage() {
 
   return (
     <div className="bg-[#f9f9f9] min-h-screen" style={{ fontFamily: "Inter, sans-serif" }} ref={captureRef}>
-      <style>{`.capture-mode * { box-shadow: none !important; text-shadow: none !important; }`}</style>
-      <SipenaNav />
-      <NewsTicker />
-      <main className="pt-32 pb-12 px-6 max-w-[1600px] mx-auto">
+      <style>{`
+        .capture-mode * {
+          box-shadow: none !important;
+          text-shadow: none !important;
+        }
+        .capture-mode {
+          width: 1400px !important;
+          min-width: 1400px !important;
+          max-width: 1400px !important;
+          background-color: #f9f9f9 !important;
+          box-sizing: border-box !important;
+          padding: 32px !important;
+        }
+        .capture-mode main {
+          padding-top: 2rem !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          padding-left: 2rem !important;
+          padding-right: 2rem !important;
+        }
+        .capture-mode .no-capture {
+          display: none !important;
+        }
+        .capture-show {
+          display: none !important;
+        }
+        .capture-mode .capture-show {
+          display: block !important;
+        }
+      `}</style>
+      <div className="no-capture"><SipenaNav /></div>
+      <div className="no-capture"><NewsTicker /></div>
+      <main className="pt-32 pb-12 px-4 sm:px-6 max-w-[1600px] mx-auto">
 
-        <header className="mb-8 flex justify-between items-end">
+        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">Rekapitulasi Bencana Regional</h1>
             <p className="text-sm text-slate-500 mt-1">Seluruh kejadian bencana di Kabupaten Rokan Hulu.</p>
           </div>
-          <div className="flex items-center gap-2 text-slate-500 text-sm bg-white px-4 py-2 rounded-full border border-slate-200">
+          <div className="flex items-center gap-2 text-slate-500 text-sm bg-white px-4 py-2.5 rounded-xl border border-slate-200 self-start md:self-auto shadow-sm">
             <span className="material-symbols-outlined text-[18px]">calendar_today</span>
             <span>Data hingga: {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}</span>
           </div>
         </header>
 
+        {/* Active Filters Summary (Visible only during Capture Mode) */}
+        <div className="capture-show mb-6 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Filter Aktif Laporan</h3>
+          <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-slate-700">
+            <div>
+              <span className="text-slate-400 font-semibold mr-1.5">Kecamatan:</span>
+              <span className="font-bold">
+                {filterKecamatan === "semua" ? "Semua Kecamatan" : kecamatans.find(k => String(k.id) === filterKecamatan)?.nama_kecamatan}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-semibold mr-1.5">Jenis Bencana:</span>
+              <span className="font-bold capitalize">
+                {filterJenis === "semua" ? "Semua Jenis" : filterJenis.replace(/_/g, " ")}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 font-semibold mr-1.5">Status:</span>
+              <span className="font-bold">
+                {filterSiaga === "semua" ? "Semua Status" : SIAGA_LABEL[filterSiaga]}
+              </span>
+            </div>
+            {(tanggalDari || tanggalSampai) && (
+              <div>
+                <span className="text-slate-400 font-semibold mr-1.5">Periode:</span>
+                <span className="font-bold">
+                  {tanggalDari ? new Date(tanggalDari).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "Awal"} s/d {tanggalSampai ? new Date(tanggalSampai).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "Hari Ini"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
           {/* Filter */}
-          <div className="p-6 bg-slate-50/50 border-b border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kecamatan</label>
-                  <select className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none h-10 min-w-[160px]"
-                    value={filterKecamatan} onChange={(e) => setFilterKecamatan(e.target.value)}>
-                    <option value="semua">Semua Kecamatan</option>
-                    {kecamatans.map((k) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
-                  <select className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none h-10 min-w-[160px]"
-                    value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
-                    <option value="semua">Semua Jenis</option>
-                    {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Siaga</label>
-                  <select className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none h-10 min-w-[130px]"
-                    value={filterSiaga} onChange={(e) => setFilterSiaga(e.target.value)}>
-                    <option value="semua">Semua Level</option>
-                    <option value="siaga1">Siaga 1</option>
-                    <option value="siaga2">Siaga 2</option>
-                    <option value="siaga3">Siaga 3</option>
-                    <option value="selesai">Selesai</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>
-                  <div className="flex flex-col sm:flex-row items-center bg-white border border-slate-200 rounded-lg p-2 sm:p-0 sm:px-3 sm:h-10 gap-2 w-full">
-                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none w-full" 
-                           value={tanggalDari} max={tanggalSampai || undefined} 
-                           onChange={(e) => setTanggalDari(e.target.value)} />
-                    <span className="text-slate-400 text-xs hidden sm:block">s/d</span>
-                    <span className="text-slate-400 text-[10px] sm:hidden font-bold text-center w-full border-t border-b border-slate-100 py-1 my-1">SAMPAI</span>
-                    <input type="date" className="border-none bg-transparent p-0 text-sm focus:ring-0 outline-none w-full" 
-                           value={tanggalSampai} min={tanggalDari || undefined} 
-                           onChange={(e) => setTanggalSampai(e.target.value)} />
+          <div className="p-4 sm:p-6 bg-slate-50/50 border-b border-slate-200 no-capture">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kecamatan</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                  value={filterKecamatan} onChange={(e) => setFilterKecamatan(e.target.value)}>
+                  <option value="semua">Semua Kecamatan</option>
+                  {kecamatans.map((k) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                  value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
+                  <option value="semua">Semua Jenis</option>
+                  {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Siaga</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                  value={filterSiaga} onChange={(e) => setFilterSiaga(e.target.value)}>
+                  <option value="semua">Semua Level</option>
+                  <option value="siaga1">Siaga 1</option>
+                  <option value="siaga2">Siaga 2</option>
+                  <option value="siaga3">Siaga 3</option>
+                  <option value="selesai">Selesai</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5 lg:col-span-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>
+                <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dari Tanggal</span>
+                    <input type="date" className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                      value={tanggalDari} max={tanggalSampai || undefined}
+                      onChange={(e) => setTanggalDari(e.target.value)} />
+                  </div>
+                  <span className="hidden sm:flex h-11 items-center justify-center text-slate-400 text-xs font-bold px-1">s/d</span>
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sampai Tanggal</span>
+                    <input type="date" className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                      value={tanggalSampai} min={tanggalDari || undefined}
+                      onChange={(e) => setTanggalSampai(e.target.value)} />
                   </div>
                 </div>
-                <div className="flex items-end h-[58px]">
-                  <button onClick={() => { setFilterKecamatan("semua"); setFilterJenis("semua"); setFilterSiaga("semua"); setTanggalDari(""); setTanggalSampai(""); }}
-                    className="bg-white border border-slate-200 text-slate-500 px-5 h-10 rounded-lg font-medium hover:bg-slate-50 text-sm">
-                    Reset
-                  </button>
+              </div>
+            </div>
+
+            {/* Actions & Reset Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-slate-200/60 mt-6">
+              <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+                <button
+                  onClick={() => {
+                    setFilterKecamatan("semua");
+                    setFilterJenis("semua");
+                    setFilterSiaga("semua");
+                    setTanggalDari("");
+                    setTanggalSampai("");
+                  }}
+                  className="w-full sm:w-auto h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold border border-slate-200 transition-colors shadow-sm"
+                >
+                  Reset Filter
+                </button>
+                <div className="text-xs text-slate-400 font-medium leading-relaxed hidden md:block">
+                  * Gunakan filter di atas untuk menyaring laporan bencana.
                 </div>
               </div>
-              <div className="flex items-end h-[58px] gap-2">
+
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button onClick={handleScreenshot} disabled={isCapturing}
-                  className="flex items-center gap-2 bg-amber-500 text-white px-4 h-10 rounded-lg font-semibold hover:bg-amber-600 text-sm shadow-md disabled:opacity-60">
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-amber-500 text-white px-5 h-11 rounded-xl font-bold hover:bg-amber-600 text-sm shadow-md disabled:opacity-60 transition-colors">
                   <span className="material-symbols-outlined text-[20px]">{isCapturing ? "hourglass_top" : "photo_camera"}</span>
-                  Capture
+                  Screenshot
                 </button>
                 <button onClick={handleExportExcel} disabled={isExporting}
-                  className="flex items-center gap-2 bg-[#1C1F2B] text-white px-5 h-10 rounded-lg font-semibold hover:bg-slate-700 text-sm shadow-md disabled:opacity-60">
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#1C1F2B] text-white px-5 h-11 rounded-xl font-bold hover:bg-slate-700 text-sm shadow-md disabled:opacity-60 transition-colors">
                   <span className="material-symbols-outlined text-[20px]">{isExporting ? "hourglass_top" : "table_view"}</span>
                   {isExporting ? "Mengekspor..." : "Export Excel"}
                 </button>
@@ -345,13 +426,53 @@ export default function RekapKabPage() {
             </div>
           </div>
 
+          {/* Legend Aksi */}
+          <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs text-slate-500 flex flex-wrap items-center gap-4 no-capture">
+            <span className="font-bold text-slate-600">Keterangan Aksi:</span>
+            {role !== "pimpinan" && (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-blue-600">edit</span>
+                  Update Status
+                </span>
+              </>
+            )}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px] text-amber-600">visibility</span>
+              Detail
+            </span>
+            {role !== "pimpinan" && (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-violet-600">edit_note</span>
+                  Edit Detail
+                </span>
+
+              </>
+            )}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px] text-rose-600">picture_as_pdf</span>
+              Export PDF
+            </span>
+
+            {role !== "pimpinan" && (
+              <>
+
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-red-600">delete</span>
+                  Hapus
+                </span>
+              </>
+            )}
+          </div>
+
           {/* Tabel */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="-mx-4 sm:mx-0 overflow-x-auto">
+            <table className="min-w-[1200px] w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                  {["No","Tanggal","Jenis Bencana","Kecamatan","Lokasi","Pelapor","Status","LR","LB","M","Aksi"].map((h) => (
-                    <th key={h} className="px-4 py-4 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  {["No", "Tanggal", "Jenis Bencana", "Kecamatan", "Lokasi", "Pelapor", "Status", "LR", "LB", "M", "Aksi"].map((h) => (
+                    <th key={h} className={`px-4 py-4 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${h === "Aksi" ? "no-capture" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -383,40 +504,54 @@ export default function RekapKabPage() {
                     <td className="px-4 py-3 text-sm text-slate-700">{item.nama_pelapor ?? "-"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${SIAGA_CLS[item.status] ?? "bg-slate-200 text-slate-600"}`}>
+                        <span className={`inline-flex items-center justify-center whitespace-nowrap min-w-[72px] px-3 py-1.5 rounded-full text-[10px] font-bold uppercase leading-none ${SIAGA_CLS[item.status] ?? "bg-slate-200 text-slate-600"}`}>
                           {SIAGA_LABEL[item.status] ?? item.status}
                         </span>
                         {role !== "pimpinan" && (
                           <button onClick={() => { setStatusModal(item); setNewStatus(item.status ?? "siaga3"); setUpdateNotes(item.catatan_update ?? ""); }}
-                            className="p-1 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Update Status">
+                            className="p-1.5 rounded-lg text-blue-600 bg-blue-50 border border-blue-200 transition-all duration-200 hover:bg-blue-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(37,99,235,0.45)] flex items-center justify-center no-capture animate-glow" title="Update Status">
                             <span className="material-symbols-outlined text-[16px]">edit</span>
                           </button>
                         )}
                       </div>
                     </td>
-                    <td className="px-2 py-3 text-center text-sm font-mono">{item.korban_luka_ringan ?? 0}</td>
-                    <td className="px-2 py-3 text-center text-sm font-mono">{item.korban_luka_berat  ?? 0}</td>
-                    <td className="px-2 py-3 text-center text-sm font-bold text-red-600 font-mono">{item.korban_meninggal ?? 0}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 py-3 text-center">
+                      <span className="inline-flex items-center justify-center min-w-[28px] h-6 px-1.5 rounded-md text-xs font-bold font-mono bg-yellow-50 text-yellow-600 border border-yellow-200">
+                        {item.korban_luka_ringan ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-center">
+                      <span className="inline-flex items-center justify-center min-w-[28px] h-6 px-1.5 rounded-md text-xs font-bold font-mono bg-orange-50 text-orange-600 border border-orange-200">
+                        {item.korban_luka_berat ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-center">
+                      <span className="inline-flex items-center justify-center min-w-[28px] h-6 px-1.5 rounded-md text-xs font-bold font-mono bg-red-50 text-red-600 border border-red-200">
+                        {item.korban_meninggal ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 no-capture">
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => navigate(`/detail/${item.id}`)} title="Detail"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors">
+                          className="p-1.5 rounded-lg text-amber-600 bg-amber-50 border border-amber-200 transition-all duration-200 hover:bg-amber-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(217,119,6,0.45)] flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px]">visibility</span>
                         </button>
-                        {role !== "pimpinan" && (<>
+                        {role !== "pimpinan" && (
                           <button onClick={() => navigate(`/edit-detail/${item.id}`)} title="Edit Detail Kejadian"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors">
+                            className="p-1.5 rounded-lg text-violet-600 bg-violet-50 border border-violet-200 transition-all duration-200 hover:bg-violet-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(124,58,237,0.45)] flex items-center justify-center">
                             <span className="material-symbols-outlined text-[18px]">edit_note</span>
                           </button>
-                          <button onClick={() => handleDeleteClick(item)} title="Hapus Laporan"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
-                        </>)}
+                        )}
                         <button onClick={() => handleExportPdfItem(item.id)} title="Export PDF"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                          className="p-1.5 rounded-lg text-rose-600 bg-rose-50 border border-rose-200 transition-all duration-200 hover:bg-rose-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(225,29,72,0.45)] flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                         </button>
+                        {role !== "pimpinan" && (
+                          <button onClick={() => handleDeleteClick(item)} title="Hapus Laporan"
+                            className="p-1.5 rounded-lg text-red-600 bg-red-50 border border-red-200 transition-all duration-200 hover:bg-red-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(220,38,38,0.45)] flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -430,9 +565,9 @@ export default function RekapKabPage() {
               <p className="text-sm text-slate-500">
                 Menampilkan <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri
               </p>
-              
+
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -442,7 +577,7 @@ export default function RekapKabPage() {
                 <span className="text-sm font-medium text-slate-600">
                   Halaman {currentPage} dari {totalPages}
                 </span>
-                <button 
+                <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

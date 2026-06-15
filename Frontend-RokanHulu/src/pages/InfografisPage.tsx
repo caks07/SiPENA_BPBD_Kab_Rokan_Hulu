@@ -95,6 +95,23 @@ export default function InfografisPage() {
   }), [laporanRaw, filterJenis, filterKec, filterDari, filterSampai]);
 
   const total = laporan.length;
+  const tanggalTerawal = useMemo(() => {
+    if (laporan.length === 0) return null;
+    const dates = laporan
+      .map((item: any) => item.waktu_kejadian ? new Date(item.waktu_kejadian).getTime() : null)
+      .filter((t: number | null): t is number => t !== null && !isNaN(t));
+    if (dates.length === 0) return null;
+    return new Date(Math.min(...dates));
+  }, [laporan]);
+
+  const displayDari = useMemo(() => {
+    if (filterDari) return new Date(filterDari).toLocaleDateString('id-ID');
+    if (tanggalTerawal && !isNaN(tanggalTerawal.getTime())) {
+      return tanggalTerawal.toLocaleDateString('id-ID');
+    }
+    return "Awal";
+  }, [filterDari, tanggalTerawal]);
+
   const totalMeninggal = laporan.reduce((s: number, i: any) => s + (i.korban_meninggal ?? 0), 0);
   const totalMengungsi = laporan.reduce((s: number, i: any) => s + (i.jiwa_mengungsi ?? 0), 0);
   const totalLukaRingan = laporan.reduce((s: number, i: any) => s + (i.korban_luka_ringan ?? 0), 0);
@@ -241,80 +258,168 @@ export default function InfografisPage() {
           box-shadow: none !important;
           text-shadow: none !important;
         }
+        .capture-mode {
+          width: 1200px !important;
+          min-width: 1200px !important;
+          max-width: 1200px !important;
+          box-sizing: border-box !important;
+          padding: 32px !important;
+        }
+        .capture-mode .kpi-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+        .capture-mode .dist-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
+        .capture-mode .dampak-tren-grid {
+          grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+        }
+        .capture-mode .dampak-col {
+          grid-column: span 7 / span 7 !important;
+        }
+        .capture-mode .tren-col {
+          grid-column: span 5 / span 5 !important;
+        }
+        .capture-mode .korban-grid {
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        }
+        .capture-mode .korban-grid > div:last-child {
+          grid-column: span 1 / span 1 !important;
+        }
+        .capture-mode .rumah-fasilitas-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
       `}</style>
 
       <main className="pt-32 pb-16 px-4 max-w-[1200px] mx-auto">
         {/* Top Control Bar (Not Captured) */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap gap-4 items-end shadow-sm">
-           <div className="flex flex-col gap-1.5 flex-1 min-w-[150px]">
-             <label className="text-[11px] font-bold text-slate-500 uppercase">Kecamatan</label>
-             <select className="bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 outline-none h-10" value={filterKec} onChange={e => setFilterKec(e.target.value)}>
-               <option value="semua">Semua Kecamatan</option>
-               {kecamatans.map((k:any) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
-             </select>
-           </div>
-           <div className="flex flex-col gap-1.5 flex-1 min-w-[150px]">
-             <label className="text-[11px] font-bold text-slate-500 uppercase">Jenis Bencana</label>
-             <select className="bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 outline-none h-10" value={filterJenis} onChange={e => setFilterJenis(e.target.value)}>
-               <option value="semua">Semua Bencana</option>
-               {Object.entries(JENIS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-             </select>
-           </div>
-           <div className="flex flex-col gap-1.5 flex-1 min-w-[200px] sm:min-w-[300px]">
-             <label className="text-[11px] font-bold text-slate-500 uppercase">Periode</label>
-             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-0 bg-slate-50 border border-slate-200 rounded-lg p-2 sm:p-0 sm:h-10 sm:px-2">
-               <input type="date" max={filterSampai || undefined} className="bg-transparent text-sm outline-none w-full" value={filterDari} onChange={e => setFilterDari(e.target.value)} />
-               <span className="px-2 text-slate-400 hidden sm:block">s/d</span>
-               <span className="px-2 text-slate-400 sm:hidden block text-[10px] font-bold text-center w-full border-t border-b border-slate-200 py-1 my-1">SAMPAI</span>
-               <input type="date" min={filterDari || undefined} className="bg-transparent text-sm outline-none w-full" value={filterSampai} onChange={e => setFilterSampai(e.target.value)} />
-             </div>
-           </div>
-           <button onClick={() => { setFilterJenis("semua"); setFilterKec("semua"); setFilterDari(""); setFilterSampai(""); }} className="bg-slate-100 text-slate-600 px-4 h-10 rounded-lg text-sm font-bold border border-slate-200">Reset</button>
-           <button onClick={handleScreenshot} disabled={isCapturing} className="bg-slate-900 text-white px-6 h-10 rounded-lg text-sm font-bold flex items-center gap-2 ml-auto">
-             <span className="material-symbols-outlined text-[18px]">{isCapturing ? "hourglass_top" : "screenshot"}</span>
-             {isCapturing ? "Capturing..." : "Screenshot"}
-           </button>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 mb-6 shadow-sm">
+          <div className="flex flex-col gap-6">
+            {/* Filter inputs grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kecamatan</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" value={filterKec} onChange={e => setFilterKec(e.target.value)}>
+                  <option value="semua">Semua Kecamatan</option>
+                  {kecamatans.map((k:any) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" value={filterJenis} onChange={e => setFilterJenis(e.target.value)}>
+                  <option value="semua">Semua Bencana</option>
+                  {Object.entries(JENIS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5 lg:col-span-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>
+                <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dari Tanggal</span>
+                    <input
+                      type="date"
+                      max={filterSampai || undefined}
+                      className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                      value={filterDari}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setFilterDari(val);
+                        if (filterSampai && val > filterSampai) {
+                          setFilterSampai(val);
+                        }
+                      }}
+                    />
+                  </div>
+                  <span className="hidden sm:flex h-11 items-center justify-center text-slate-400 text-xs font-bold px-1">s/d</span>
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sampai Tanggal</span>
+                    <input
+                      type="date"
+                      min={filterDari || undefined}
+                      className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                      value={filterSampai}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setFilterSampai(val);
+                        if (filterDari && val < filterDari) {
+                          setFilterDari(val);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions & Reset Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-slate-200 mt-2">
+              <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+                <button
+                  onClick={() => {
+                    setFilterJenis("semua");
+                    setFilterKec("semua");
+                    setFilterDari("");
+                    setFilterSampai("");
+                  }}
+                  className="w-full sm:w-auto h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold border border-slate-200 transition-colors shadow-sm"
+                >
+                  Reset Filter
+                </button>
+                <div className="text-xs text-slate-400 font-medium leading-relaxed hidden md:block">
+                  * Gunakan filter di atas untuk menganalisis infografis kebencanaan.
+                </div>
+              </div>
+
+              <div className="w-full sm:w-auto">
+                <button onClick={handleScreenshot} disabled={isCapturing}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-amber-500 text-white px-5 h-11 rounded-xl font-bold hover:bg-amber-600 text-sm shadow-md disabled:opacity-60 whitespace-nowrap transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">{isCapturing ? "hourglass_top" : "photo_camera"}</span>
+                  Screenshot
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64"><div className="animate-spin w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full" /></div>
         ) : (
-          <div ref={chartRef} className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <div ref={chartRef} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-sm">
             {/* SECTION 1: HEADER */}
             <div className="border-b border-slate-200 pb-5 mb-8 flex items-center justify-between">
               <div>
                 <p className="text-amber-500 font-bold text-xs tracking-widest uppercase mb-1">SIPENA — BPBD ROKAN HULU</p>
-                <h1 className="text-3xl font-black text-slate-900">Infografis Kejadian Bencana</h1>
-                <p className="text-slate-500 mt-1">Periode: {filterDari ? new Date(filterDari).toLocaleDateString('id-ID') : "Awal"} s.d {filterSampai ? new Date(filterSampai).toLocaleDateString('id-ID') : "Hari Ini"}</p>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Infografis Kejadian Bencana</h1>
+                <p className="text-slate-500 mt-1">Periode: {displayDari} s.d {filterSampai ? new Date(filterSampai).toLocaleDateString('id-ID') : "Hari Ini"}</p>
               </div>
             </div>
 
             {/* SECTION 2: KPI UTAMA */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 border-l-4 border-l-amber-500">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 kpi-grid">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-amber-500">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Kejadian</p>
-                <p className="text-4xl font-black text-slate-800">{total}</p>
+                <p className="text-3xl sm:text-4xl font-black text-slate-800">{total}</p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 border-l-4 border-l-blue-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-blue-500">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Titik Terdampak</p>
-                <p className="text-4xl font-black text-slate-800">{byKec.length} <span className="text-sm text-slate-400">Kec</span></p>
+                <p className="text-3xl sm:text-4xl font-black text-slate-800">{byKec.length} <span className="text-sm text-slate-400">Kec</span></p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 border-l-4 border-l-red-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-red-500">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Korban</p>
-                <p className="text-4xl font-black text-slate-800">{totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi}</p>
+                <p className="text-3xl sm:text-4xl font-black text-slate-800">{totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi}</p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 border-l-4 border-l-emerald-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-emerald-500">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Dominan</p>
-                <p className="text-3xl font-black text-slate-800 break-words leading-tight mt-1">{statusDominan}</p>
+                <p className="text-2xl sm:text-3xl font-black text-slate-800 break-words leading-tight mt-1">{statusDominan}</p>
               </div>
             </div>
 
             {/* SECTION 3: DISTRIBUSI DATA */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white border border-slate-200 rounded-xl p-5">
-                <h3 className="font-bold text-slate-700 mb-6 text-sm uppercase tracking-wider">Jenis Bencana</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 dist-grid">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col items-center">
+                <h3 className="font-bold text-slate-700 mb-6 text-sm uppercase tracking-wider self-start">Jenis Bencana</h3>
                 <DonutSVG data={byJenis} total={total} />
-                <div className="mt-6 grid grid-cols-2 gap-2">
+                <div className="mt-6 grid grid-cols-2 gap-2 w-full">
                   {byJenis.slice(0,6).map((d,i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
                       <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: d.color}}></span>
@@ -325,10 +430,10 @@ export default function InfografisPage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-xl p-5">
-                <h3 className="font-bold text-slate-700 mb-6 text-sm uppercase tracking-wider">Status Siaga</h3>
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col items-center">
+                <h3 className="font-bold text-slate-700 mb-6 text-sm uppercase tracking-wider self-start">Status Siaga</h3>
                 <DonutSVG data={byStatus} total={total} />
-                <div className="mt-6 grid grid-cols-2 gap-2">
+                <div className="mt-6 grid grid-cols-2 gap-2 w-full">
                   {byStatus.map((d,i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
                       <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: d.color}}></span>
@@ -356,10 +461,10 @@ export default function InfografisPage() {
             </div>
 
             {/* SECTION 4 & 5: DAMPAK & TREN */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 dampak-tren-grid">
               
               {/* Kolom Kiri: Group Dampak */}
-              <div className="lg:col-span-7 flex flex-col gap-6">
+              <div className="lg:col-span-7 flex flex-col gap-6 dampak-col">
                 <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Dampak Bencana</h3>
                 
                 {/* A. Group Korban */}
@@ -370,7 +475,7 @@ export default function InfografisPage() {
                   </div>
                   
                   {/* Row 1 (Highlight Utama) */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3 korban-grid">
                     <div className="bg-red-50/50 border border-red-100 p-3 rounded-lg text-center flex flex-col justify-center">
                       <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-1">Meninggal</p>
                       <p className="text-xl font-black text-red-600">{totalMeninggal}</p>
@@ -387,7 +492,7 @@ export default function InfografisPage() {
                       <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mb-1">Mengungsi</p>
                       <p className="text-xl font-black text-blue-600">{totalMengungsi}</p>
                     </div>
-                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center flex flex-col justify-center">
+                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center flex flex-col justify-center col-span-2 sm:col-span-1">
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Hilang</p>
                       <p className="text-xl font-black text-slate-700">{totalHilang}</p>
                     </div>
@@ -404,7 +509,7 @@ export default function InfografisPage() {
                 </div>
 
                 {/* B & C: Rumah & Fasilitas (Side by side on larger screens) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 rumah-fasilitas-grid">
                   {/* B. Group Rumah */}
                   <div className="bg-white border border-slate-200 p-5 rounded-xl">
                     <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
@@ -459,7 +564,7 @@ export default function InfografisPage() {
               </div>
 
               {/* Kolom Kanan: Tren Bencana */}
-              <div className="lg:col-span-5 flex flex-col gap-6">
+              <div className="lg:col-span-5 flex flex-col gap-6 tren-col">
                 <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Tren Kejadian Bencana</h3>
                 <div className="bg-white border border-slate-200 p-5 rounded-xl flex-1 flex flex-col">
                   <div className="flex-1 min-h-[250px] relative w-full">

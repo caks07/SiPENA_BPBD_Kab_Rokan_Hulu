@@ -19,7 +19,7 @@ const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
     { name: "penyebab_ids", label: "Kronologi Kejadian (Penyebab)", type: "checkbox", optKey: "opt_banjir_penyebab", required: true, showOtherField: true, otherName: "penyebab_lain" },
     { name: "ketinggian_banjir_id", label: "Ketinggian Banjir", type: "radio", optKey: "opt_banjir_ketinggian", required: true, showOtherField: true, otherName: "ketinggian_banjir_lain" },
     { name: "kondisi_air_id", label: "Kondisi Air Saat Ini", type: "radio", optKey: "opt_banjir_kondisi_air", required: true },
-    { name: "luas_genangan", label: "Estimasi Luas Genangan", type: "number", required: true },
+    { name: "luas_genangan", label: "Estimasi Luas Genangan (m²)", type: "number", required: true },
     { name: "kondisi_cuaca_id", label: "Kondisi Cuaca Saat Ini", type: "radio", optKey: "opt_kondisi_cuaca", required: true },
   ],
   banjir_bandang: [
@@ -108,6 +108,50 @@ export default function Step2DetailBencana() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check required fields
+    for (const field of fields) {
+      if (field.required) {
+        if (field.type === "checkbox") {
+          const val = detail[field.name];
+          if (!Array.isArray(val) || val.length === 0) {
+            alert(`Pertanyaan "${field.label}" wajib diisi / dipilih.`);
+            return;
+          }
+        } else if (field.type === "radio") {
+          const val = detail[field.name];
+          if (val === undefined || val === null || val === "") {
+            alert(`Pertanyaan "${field.label}" wajib diisi / dipilih.`);
+            return;
+          }
+        } else {
+          const val = detail[field.name];
+          if (val === undefined || val === null || String(val).trim() === "") {
+            alert(`Pertanyaan "${field.label}" wajib diisi.`);
+            return;
+          }
+        }
+      }
+
+      // Also validate "Lainnya" text input if the "Lainnya" option is selected
+      const opts: any[] = options?.[field.optKey!] ?? [];
+      const otherOpt = opts.find(o => o.is_other);
+      if (field.showOtherField && otherOpt && field.otherName) {
+        const currentArr: number[] = Array.isArray(detail[field.name]) ? detail[field.name] : [];
+        const isSelected = field.type === "checkbox"
+          ? currentArr.includes(otherOpt.id)
+          : detail[field.name] == otherOpt.id;
+
+        if (isSelected) {
+          const otherVal = detail[field.otherName];
+          if (!otherVal || String(otherVal).trim() === "") {
+            alert(`Harap isi kolom keterangan "Sebutkan lainnya" untuk "${field.label}".`);
+            return;
+          }
+        }
+      }
+    }
+
     nextStep();
   };
 
@@ -127,16 +171,19 @@ export default function Step2DetailBencana() {
         </label>
 
         {field.type === "checkbox" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {opts.map(opt => (
-              <label key={opt.id} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all ${currentArr.includes(opt.id) ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:bg-slate-50"}`}>
-                <input type="checkbox" className="w-5 h-5 rounded text-amber-500 focus:ring-amber-400"
-                  checked={currentArr.includes(opt.id)}
-                  onChange={() => toggleCheckbox(field.name, opt.id)} />
-                <span className="text-slate-800">{opt.label}</span>
-              </label>
-            ))}
-          </div>
+          <>
+            <p className="text-xs text-slate-400 -mt-2 mb-2">Bisa pilih lebih dari satu</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {opts.map(opt => (
+                <label key={opt.id} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all ${currentArr.includes(opt.id) ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:bg-slate-50"}`}>
+                  <input type="checkbox" className="w-5 h-5 rounded text-amber-500 focus:ring-amber-400"
+                    checked={currentArr.includes(opt.id)}
+                    onChange={() => toggleCheckbox(field.name, opt.id)} />
+                  <span className="text-slate-800">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </>
         )}
 
         {field.type === "radio" && (
@@ -158,8 +205,15 @@ export default function Step2DetailBencana() {
             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none"
             value={detail[field.name] || ""}
             onChange={e => {
-              if (field.type === "number") {
-                setField(field.name, e.target.value.replace(/[^0-9]/g, ''));
+              if (field.name === "dimensi_longsor") {
+                let val = e.target.value.replace(/[^0-9xX.,\- ]/g, '');
+                setField(field.name, val);
+              } else if (field.type === "number") {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                if (val !== "") {
+                  val = val.replace(/^0+(?=\d)/, '');
+                }
+                setField(field.name, val);
               } else {
                 setField(field.name, e.target.value);
               }
@@ -192,7 +246,7 @@ export default function Step2DetailBencana() {
 
   return (
     // pb-28 agar konten terakhir tidak tertutup footer fixed
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8 pb-28">
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8">
       <div className="border-t-8 border-amber-500 -mx-6 md:-mx-8 -mt-6 md:-mt-8 pt-6 px-6 md:px-8 mb-6 rounded-t-2xl">
         <h2 className="text-2xl font-bold text-slate-800 mt-2">Detail Bencana: {jenis_bencana.replace(/_/g, " ").toUpperCase()}</h2>
         <p className="text-slate-500 text-sm mt-1">Harap lengkapi informasi teknis mengenai kondisi bencana di lokasi kejadian.</p>
@@ -205,15 +259,22 @@ export default function Step2DetailBencana() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <button type="button" onClick={prevStep} className="flex items-center gap-2 text-slate-500 px-6 py-3 hover:bg-slate-100 rounded-xl transition-all active:scale-95">
-            <span className="material-symbols-outlined">arrow_back</span>
-            <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
+        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={prevStep}
+            className="flex items-center gap-1 sm:gap-2 text-slate-500 px-2.5 sm:px-5 py-2 sm:py-2.5 hover:bg-slate-100 rounded-xl transition-all active:scale-95 text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
+            <span>Kembali</span>
           </button>
-          <div className="text-slate-400 font-bold uppercase text-sm">Langkah 2/4</div>
-          <button type="submit" className="flex items-center gap-2 bg-amber-500 text-white rounded-xl px-6 py-3 active:scale-95 transition-transform shadow-md">
-            <span className="text-sm font-bold uppercase tracking-wider">Lanjut</span>
-            <span className="material-symbols-outlined">arrow_forward</span>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 2/4</div>
+          <button
+            type="submit"
+            className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span>Lanjut</span>
+            <span className="material-symbols-outlined text-sm sm:text-base">arrow_forward</span>
           </button>
         </div>
       </form>

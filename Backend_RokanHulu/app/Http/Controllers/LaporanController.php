@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
@@ -114,6 +116,17 @@ class LaporanController extends Controller
 
     public function store(Request $request)
     {
+        // ── [1] Verifikasi Form Access Token ─────────────────────────────────────
+        // Token dikeluarkan oleh POST /api/form-access/verify setelah password benar.
+        // Cek di sini (awal), tapi HAPUS hanya setelah laporan berhasil tersimpan.
+        // Jika validasi/DB gagal → token tetap valid agar user tidak re-enter password.
+        $formToken = $request->header('X-Form-Access-Token');
+        if (!$formToken || !Cache::has("form_access:{$formToken}")) {
+            return response()->json([
+                'error' => 'Akses form tidak valid atau sudah kedaluwarsa. Muat ulang halaman dan masukkan password kembali.',
+            ], 401);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -135,8 +148,40 @@ class LaporanController extends Controller
                 return response()->json(['error' => 'Payload laporan tidak valid atau kosong'], 400);
             }
 
+            // ── [2] Validasi waktu kejadian tidak boleh masa depan ───────────────
+            if (!empty($laporanData['waktu_kejadian'])) {
+                $wkt = Carbon::parse($laporanData['waktu_kejadian'], 'Asia/Jakarta');
+                if ($wkt->isFuture()) {
+                    return response()->json([
+                        'error' => 'Tanggal dan jam kejadian tidak boleh melebihi waktu sekarang.',
+                    ], 422);
+                }
+            }
+
+            // ── [3] Validasi koordinat (required) ────────────────────────────────
             $lat = (float) ($laporanData['latitude']  ?? 0);
             $lng = (float) ($laporanData['longitude'] ?? 0);
+            if ($lat === 0.0 && $lng === 0.0) {
+                return response()->json(['error' => 'Koordinat lokasi kejadian wajib diisi.'], 422);
+            }
+
+            // ── [4] Validasi foto (jenis & ukuran) ───────────────────────────────
+            if ($request->hasFile('fotos')) {
+                foreach ($request->file('fotos') as $foto) {
+                    $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                    if (!in_array($foto->getMimeType(), $allowedMimes)) {
+                        return response()->json([
+                            'error' => 'Format file foto tidak didukung. Gunakan JPG, PNG, atau WebP.',
+                        ], 422);
+                    }
+                    if ($foto->getSize() > 10 * 1024 * 1024) {
+                        return response()->json([
+                            'error' => 'Ukuran file foto melebihi batas 10 MB.',
+                        ], 422);
+                    }
+                }
+            }
+
 
             // ── Insert laporan utama ───────────────────────────────────────────────
             $laporanId = DB::table('laporan_bencana')->insertGetId([
@@ -245,6 +290,11 @@ class LaporanController extends Controller
             }
 
             DB::commit();
+
+            // ── [5] Hapus form access token setelah laporan sukses tersimpan ─────
+            // Token dihapus di sini (bukan di awal) agar user bisa retry tanpa re-enter password
+            Cache::forget("form_access:{$formToken}");
+
             return response()->json(['message' => 'Laporan berhasil disubmit', 'id' => $laporanId], 201);
 
         } catch (\Exception $e) {

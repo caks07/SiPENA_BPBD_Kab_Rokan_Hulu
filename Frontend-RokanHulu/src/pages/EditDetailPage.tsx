@@ -82,7 +82,7 @@ const FIELD_CONFIGS: Record<string, FieldCfg[]> = {
     { name: "penyebab_ids", label: "Kronologi Kejadian (Penyebab)", type: "checkbox", optKey: "opt_banjir_penyebab", required: true, showOtherField: true, otherName: "penyebab_lain" },
     { name: "ketinggian_banjir_id", label: "Ketinggian Banjir", type: "radio", optKey: "opt_banjir_ketinggian", required: true, showOtherField: true, otherName: "ketinggian_banjir_lain" },
     { name: "kondisi_air_id", label: "Kondisi Air Saat Ini", type: "radio", optKey: "opt_banjir_kondisi_air", required: true },
-    { name: "luas_genangan", label: "Estimasi Luas Genangan", type: "text", required: true },
+    { name: "luas_genangan", label: "Estimasi Luas Genangan (m²)", type: "text", required: true },
     { name: "kondisi_cuaca_id", label: "Kondisi Cuaca Saat Ini", type: "radio", optKey: "opt_kondisi_cuaca", required: true },
   ],
   banjir_bandang: [
@@ -635,7 +635,18 @@ export default function EditDetailPage() {
                                 min={field.type === "number" ? 0 : undefined}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                                 value={detailData[field.name] ?? ""}
-                                onChange={e => setDetailData(p => ({ ...p, [field.name]: e.target.value }))}
+                                onChange={e => {
+                                  let val = e.target.value;
+                                  if (field.name === "dimensi_longsor") {
+                                    val = val.replace(/[^0-9xX.,\- ]/g, '');
+                                  } else if (field.type === "number") {
+                                    val = val.replace(/[^0-9]/g, '');
+                                    if (val !== "") {
+                                      val = val.replace(/^0+(?=\d)/, '');
+                                    }
+                                  }
+                                  setDetailData(p => ({ ...p, [field.name]: val }));
+                                }}
                                 onKeyDown={field.type === "number" ? (e) => { if (["e", "E", "+", "-", ".", ","].includes(e.key)) e.preventDefault(); } : undefined}
                                 placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
                               />

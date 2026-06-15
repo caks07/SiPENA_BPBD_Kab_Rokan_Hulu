@@ -21,12 +21,16 @@ export default function Step3Korban() {
     <div key={f.name} className="space-y-2">
       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block">{f.label}</label>
       <div className="relative">
-        <input required type="number" min="0"
+        <input required type="text" inputMode="numeric" pattern="[0-9]*"
           className={`w-full border-2 rounded-xl py-3 px-4 text-xl font-bold focus:ring-2 outline-none transition-all ${
             f.danger ? "bg-red-50 border-red-200 focus:ring-red-400 text-red-700" : "bg-slate-50 border-slate-200 focus:ring-amber-400"
           }`}
-          value={korban[f.name] ?? 0}
-          onChange={e => setKorban({ [f.name]: Number(e.target.value) })}
+          value={korban[f.name] !== undefined && korban[f.name] !== null && korban[f.name] !== "" ? korban[f.name] : "0"}
+          onChange={e => {
+            const val = e.target.value.replace(/[^0-9]/g, '');
+            const cleanVal = val === "" ? "0" : val.replace(/^0+(?=\d)/, '');
+            setKorban({ [f.name]: cleanVal });
+          }}
           onKeyDown={(e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
         />
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">{f.unit}</span>
@@ -36,7 +40,7 @@ export default function Step3Korban() {
 
   return (
     // pb-28 agar konten terakhir tidak tertutup footer fixed
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8 pb-28">
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8">
       <div className="flex items-center gap-3 mb-2">
         <span className="bg-amber-500 text-white p-2 rounded-lg">
           <span className="material-symbols-outlined">group</span>
@@ -86,15 +90,22 @@ export default function Step3Korban() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <button type="button" onClick={prevStep} className="flex items-center gap-2 text-slate-500 px-6 py-3 hover:bg-slate-100 rounded-xl transition-all active:scale-95">
-            <span className="material-symbols-outlined">arrow_back</span>
-            <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
+        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={prevStep}
+            className="flex items-center gap-1 sm:gap-2 text-slate-500 px-2.5 sm:px-5 py-2 sm:py-2.5 hover:bg-slate-100 rounded-xl transition-all active:scale-95 text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
+            <span>Kembali</span>
           </button>
-          <div className="text-slate-400 font-bold uppercase text-sm">Langkah 3/4</div>
-          <button type="submit" className="flex items-center gap-2 bg-amber-500 text-white rounded-xl px-6 py-3 active:scale-95 transition-transform shadow-md">
-            <span className="text-sm font-bold uppercase tracking-wider">Lanjut</span>
-            <span className="material-symbols-outlined">arrow_forward</span>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 3/4</div>
+          <button
+            type="submit"
+            className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span>Lanjut</span>
+            <span className="material-symbols-outlined text-sm sm:text-base">arrow_forward</span>
           </button>
         </div>
       </form>

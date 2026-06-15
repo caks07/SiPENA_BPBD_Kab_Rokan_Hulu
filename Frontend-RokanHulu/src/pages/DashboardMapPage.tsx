@@ -305,15 +305,15 @@ export default function DashboardMapPage() {
       </div>
 
       {/* ── PANEL FILTER ── */}
-      {showMobileMenu && <div className="md:hidden fixed inset-0 z-[850] bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />}
-      <aside className={`fixed z-[900] bg-slate-900/95 backdrop-blur-xl md:rounded-2xl md:border border-white/10 shadow-2xl transition-transform duration-300
+      {showMobileMenu && <div className="md:hidden fixed inset-0 z-[1100] bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />}
+      <aside className={`fixed z-[3000] bg-slate-900/95 backdrop-blur-xl md:rounded-2xl md:border border-white/10 shadow-2xl transition-transform duration-300
         ${showMobileMenu ? "translate-y-0" : "translate-y-full md:translate-y-0"}
-        bottom-0 left-0 right-0 p-6 md:p-4 rounded-t-3xl md:top-28 md:bottom-4 md:left-4 md:right-auto md:w-60 flex flex-col gap-6 md:gap-3 max-h-[85vh] md:max-h-none overflow-y-auto`}>
+        bottom-0 left-0 right-0 p-6 md:p-4 rounded-t-3xl md:top-28 md:bottom-4 md:left-4 md:right-auto md:w-60 flex flex-col gap-6 md:gap-3 max-h-[70vh] md:max-h-none overflow-y-auto`}>
         
         <div className="flex md:hidden justify-between items-center border-b border-white/10 pb-3 mb-2">
-           <h3 className="text-white font-bold text-base">Filter & Ringkasan</h3>
-           <button onClick={() => setShowMobileMenu(false)} className="text-slate-400 hover:text-white">
-             <span className="material-symbols-outlined">close</span>
+           <h3 className="text-white font-bold text-base">Filter &amp; Ringkasan</h3>
+           <button onClick={() => setShowMobileMenu(false)} className="text-slate-400 hover:text-white p-2 focus:outline-none">
+             <span className="material-symbols-outlined text-2xl">close</span>
            </button>
         </div>
 
@@ -394,6 +394,15 @@ export default function DashboardMapPage() {
             <span style={{ color: "#64748B", fontSize: 10, marginLeft: 4 }}>ditampilkan</span>
           </div>
         </div>
+
+        {/* Mobile Apply Button */}
+        <button
+          onClick={() => setShowMobileMenu(false)}
+          className="md:hidden w-full mt-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+        >
+          <span className="material-symbols-outlined text-[18px]">done</span>
+          Terapkan &amp; Selesai
+        </button>
       </aside>
 
       {/* ── LEGENDA KANAN BAWAH ── */}

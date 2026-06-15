@@ -33,30 +33,44 @@ export default function NewsTicker() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const items = (laporanRaw as any[]).slice(0, 10);
-  const tickerText = items.length > 0
-    ? items.map(formatTickerItem).join("          ·          ")
-    : "SISTEM AKTIF  ·  MEMANTAU WILAYAH KABUPATEN ROKAN HULU  ·  SIPENA";
+  const activeLaporan = (laporanRaw as any[]).filter((item: any) => item.status !== "selesai");
+  const items = activeLaporan.slice(0, 10);
+  const displayItems = items.length > 0
+    ? items.map(formatTickerItem)
+    : [
+        "SISTEM AKTIF",
+        "MEMANTAU WILAYAH KABUPATEN ROKAN HULU",
+        "SIPENA BPBD ROKAN HULU"
+      ];
+
+  // Repeat items to ensure smooth scrolling
+  const repeatedItems = [...displayItems, ...displayItems, ...displayItems, ...displayItems];
+
+  const duration = Math.max(90, displayItems.length * 18);
 
   return (
     <>
       <style>{`
         @keyframes tickerMove {
-          0%   { transform: translateX(100vw); }
-          100% { transform: translateX(-100%); }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        .sipena-ticker-inner {
-          animation: tickerMove ${Math.max(40, items.length * 10)}s linear infinite;
-          white-space: nowrap;
+
+        .sipena-ticker-track {
           display: flex;
           align-items: center;
-          height: 100%;
+          width: max-content;
+          animation: tickerMove ${duration}s linear infinite;
+        }
+
+        .sipena-ticker-track:hover {
+          animation-play-state: paused;
         }
       `}</style>
       <div
         style={{
           position: "fixed",
-          top: 75,
+          top: 70,
           left: 0,
           right: 0,
           height: 40,
@@ -67,11 +81,20 @@ export default function NewsTicker() {
           alignItems: "center",
         }}
       >
-        <div className="sipena-ticker-inner"
-          style={{ color: "white", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", lineHeight: 1 }}>
-          {tickerText}
+        <div className="sipena-ticker-track">
+          {repeatedItems.map((text, idx) => (
+            <div
+              key={`${text}-${idx}`}
+              className="flex items-center shrink-0 text-white text-[13px] font-bold tracking-[0.06em] leading-none"
+              style={{ transform: "translateY(1.5px)" }}
+            >
+              <span className="whitespace-nowrap px-0">{text}</span>
+              <span className="mx-10 text-white/70 select-none">||</span>
+            </div>
+          ))}
         </div>
       </div>
     </>
   );
 }
+

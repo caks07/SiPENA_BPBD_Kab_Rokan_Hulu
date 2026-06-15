@@ -201,7 +201,7 @@ const FIELD_UNITS: Record<string, string> = {
 
 /** Label tampilan yang lebih deskriptif untuk field numerik */
 const FIELD_DISPLAY_LABELS: Record<string, string> = {
-  luas_genangan:    "Estimasi Luas Genangan",
+  luas_genangan:    "Estimasi Luas Genangan (m²)",
   luas_terbakar:    "Estimasi Luas Terbakar",
   luas_lahan:       "Luas Lahan Terdampak",
   jumlah_bergejala: "Jumlah Warga Bergejala",

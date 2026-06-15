@@ -95,6 +95,41 @@ class UserAccountSeeder extends Seeder
 
         $total = DB::table('users')->count();
         $this->command->info("UserAccountSeeder selesai. Total user di database: {$total}");
+
+        // ─────────────────────────────────────────────────
+        // System settings: password form laporan
+        // ─────────────────────────────────────────────────
+        if (DB::getSchemaBuilder()->hasTable('system_settings')) {
+            $existsHash = DB::table('system_settings')
+                ->where('key', 'report_form_password_hash')
+                ->exists();
+
+            if (!$existsHash) {
+                DB::table('system_settings')->insert([
+                    'key'        => 'report_form_password_hash',
+                    'value'      => Hash::make('rohultanggap'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $this->command->line('  [INSERT] system_settings: report_form_password_hash');
+            }
+
+            $existsPlain = DB::table('system_settings')
+                ->where('key', 'report_form_password_plain')
+                ->exists();
+
+            if (!$existsPlain) {
+                DB::table('system_settings')->insert([
+                    'key'        => 'report_form_password_plain',
+                    'value'      => 'rohultanggap',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $this->command->line('  [INSERT] system_settings: report_form_password_plain');
+            }
+        } else {
+            $this->command->warn('  [SKIP] Tabel system_settings belum ada. Jalankan migrate dulu.');
+        }
     }
 
     /**
@@ -106,13 +141,14 @@ class UserAccountSeeder extends Seeder
         $existing = DB::table('users')->where('username', $data['username'])->first();
 
         $payload = [
-            'name'         => $data['name'],
-            'username'     => $data['username'],
-            'password'     => Hash::make($data['password']),
-            'role_id'      => $data['role_id'],
-            'kecamatan_id' => $data['kecamatan_id'],
-            'is_active'    => true,
-            'updated_at'   => now(),
+            'name'           => $data['name'],
+            'username'       => $data['username'],
+            'password'       => Hash::make($data['password']),
+            'password_plain' => $data['password'],
+            'role_id'        => $data['role_id'],
+            'kecamatan_id'   => $data['kecamatan_id'],
+            'is_active'      => true,
+            'updated_at'     => now(),
         ];
 
         if ($existing) {

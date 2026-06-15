@@ -84,6 +84,20 @@ export default function Step4KerusakanFoto() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+    const invalid = newFiles.find(f => !ALLOWED_TYPES.includes(f.type));
+    if (invalid) {
+      alert(`Format file "${invalid.name}" tidak didukung. Gunakan JPG, PNG, atau WebP.`);
+      return;
+    }
+    const tooLarge = newFiles.find(f => f.size > MAX_SIZE);
+    if (tooLarge) {
+      alert(`Gagal upload karena file "${tooLarge.name}" lebih besar dari batas 10 MB.`);
+      return;
+    }
+
     const combined = [...fotos, ...newFiles].slice(0, 5);
     setFotos(combined);
     setFotoPreviews(combined.map(f => URL.createObjectURL(f)));
@@ -95,28 +109,78 @@ export default function Step4KerusakanFoto() {
     setFotoPreviews(newFotos.map(f => URL.createObjectURL(f)));
   };
 
+  const sanitizeData = (data: Record<string, any>, defaultNumericKeys: string[] = []) => {
+    const cleaned: Record<string, any> = {};
+    defaultNumericKeys.forEach(k => {
+      cleaned[k] = 0;
+    });
+    for (const k in data) {
+      const v = data[k];
+      if (v === "" || v === null || v === undefined) {
+        if (!defaultNumericKeys.includes(k)) {
+          cleaned[k] = null;
+        }
+      } else if (!isNaN(Number(v))) {
+        cleaned[k] = Number(v);
+      } else {
+        cleaned[k] = v;
+      }
+    }
+    return cleaned;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    // Ambil form access token dari sessionStorage
+    const formToken = sessionStorage.getItem('sipena_form_access_token');
+    if (!formToken) {
+      alert('Sesi akses form telah berakhir. Muat ulang halaman dan masukkan password kembali.');
+      // Reset state agar gate muncul lagi
+      sessionStorage.removeItem('sipena_form_access_token');
+      window.location.reload();
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const fd = new FormData();
       fd.append("laporan", JSON.stringify({ ...laporan, jenis_bencana }));
-      fd.append("detail_bencana", JSON.stringify(detail));
-      fd.append("korban", JSON.stringify(korban));
-      fd.append("kerusakan", JSON.stringify(kerusakan));
+      fd.append("detail_bencana", JSON.stringify(sanitizeData(detail)));
+      fd.append("korban", JSON.stringify(sanitizeData(korban, ["korban_luka_ringan", "korban_luka_berat", "korban_meninggal", "korban_hilang", "kk_mengungsi", "jiwa_mengungsi"])));
+      fd.append("kerusakan", JSON.stringify(sanitizeData(kerusakan, ["rumah_rusak_ringan", "rumah_rusak_sedang", "rumah_rusak_berat"])));
       fd.append("fasilitas_ids", JSON.stringify(fasilitasIds));
       fd.append("logistik_ids", JSON.stringify(logistikIds));
       fotos.forEach(f => fd.append("fotos[]", f));
 
-      await api.post("/laporan", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      await api.post("/laporan", fd, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-Form-Access-Token": formToken,
+        },
+      });
 
-      // Tampilkan modal sukses (bukan alert)
+      // Hapus token setelah laporan sukses tersimpan
+      sessionStorage.removeItem('sipena_form_access_token');
+
+      // Tampilkan modal sukses
       setShowSuccess(true);
     } catch (err: any) {
+      const status = err.response?.status;
       const errMsg = err.response?.data?.error ?? err.message;
+
+      if (status === 401) {
+        // Token tidak valid atau expired
+        sessionStorage.removeItem('sipena_form_access_token');
+        alert('Sesi akses form tidak valid atau sudah kedaluwarsa. Silakan masukkan password kembali.');
+        window.location.reload();
+        return;
+      }
+
       alert("❌ Gagal mengirim laporan: " + errMsg);
       console.error("Submit error:", err.response?.data ?? err);
+      // Token TIDAK dihapus di sini — user bisa retry tanpa re-enter password
     } finally {
       setIsSubmitting(false);
     }
@@ -124,12 +188,13 @@ export default function Step4KerusakanFoto() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
+    sessionStorage.removeItem('sipena_form_access_token'); // pastikan bersih
     resetForm();
     navigate("/");
   };
 
   return (
-    <div className="space-y-6 pb-32">
+    <div className="space-y-6">
       {/* Success Modal */}
       {showSuccess && <SuccessModal onClose={handleSuccessClose} />}
 
@@ -155,10 +220,14 @@ export default function Step4KerusakanFoto() {
               {[["rumah_rusak_ringan","RUSAK RINGAN"],["rumah_rusak_sedang","RUSAK SEDANG"],["rumah_rusak_berat","RUSAK BERAT"]].map(([name, label]) => (
                 <div key={name} className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</label>
-                  <input type="number" min="0" placeholder="0"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 font-mono focus:ring-2 focus:ring-amber-400 outline-none"
-                    value={kerusakan[name] ?? 0}
-                    onChange={e => setKerusakan({ [name]: Number(e.target.value) })}
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="0"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 font-mono focus:ring-2 focus:ring-amber-400 outline-none text-base font-bold"
+                    value={kerusakan[name] !== undefined && kerusakan[name] !== null && kerusakan[name] !== "" ? kerusakan[name] : "0"}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      const cleanVal = val === "" ? "0" : val.replace(/^0+(?=\d)/, '');
+                      setKerusakan({ [name]: cleanVal });
+                    }}
                     onKeyDown={(e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
                   />
                 </div>
@@ -169,9 +238,12 @@ export default function Step4KerusakanFoto() {
 
         {/* Fasilitas Umum */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="material-symbols-outlined text-amber-600">account_balance</span>
-            <h2 className="text-lg font-bold text-slate-800">Fasilitas Umum Terdampak</h2>
+          <div className="flex flex-col mb-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-amber-600">account_balance</span>
+              <h2 className="text-lg font-bold text-slate-800">Fasilitas Umum Terdampak</h2>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Bisa pilih lebih dari satu</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {FASILITAS_UMUM.map(f => (
@@ -195,9 +267,12 @@ export default function Step4KerusakanFoto() {
 
         {/* Logistik */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="material-symbols-outlined text-amber-600">inventory_2</span>
-            <h2 className="text-lg font-bold text-slate-800">Kebutuhan Logistik Mendesak</h2>
+          <div className="flex flex-col mb-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-amber-600">inventory_2</span>
+              <h2 className="text-lg font-bold text-slate-800">Kebutuhan Logistik Mendesak</h2>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Bisa pilih lebih dari satu</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {LOGISTIK.map(f => (
@@ -261,16 +336,26 @@ export default function Step4KerusakanFoto() {
         </section>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <button type="button" onClick={prevStep} disabled={isSubmitting}
-            className="flex items-center gap-2 text-slate-500 px-6 py-3 hover:bg-slate-100 rounded-xl transition-all active:scale-95 disabled:opacity-50">
-            <span className="material-symbols-outlined">arrow_back</span>
-            <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
+        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={prevStep}
+            disabled={isSubmitting}
+            className="flex items-center gap-1 sm:gap-2 text-slate-500 px-2.5 sm:px-5 py-2 sm:py-2.5 hover:bg-slate-100 rounded-xl transition-all active:scale-95 disabled:opacity-50 text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
+            <span>Kembali</span>
           </button>
-          <button type="submit" disabled={isSubmitting}
-            className="flex items-center gap-2 bg-amber-500 text-white rounded-xl px-8 py-3 active:scale-95 transition-transform shadow-md disabled:opacity-50">
-            <span className="text-sm font-bold uppercase tracking-wider">{isSubmitting ? "Menyimpan..." : "Submit Laporan"}</span>
-            <span className="material-symbols-outlined">{isSubmitting ? "hourglass_top" : "send"}</span>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 4/4</div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md disabled:opacity-50 text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            <span>{isSubmitting ? "Menyimpan..." : "Submit Laporan"}</span>
+            <span className="material-symbols-outlined text-sm sm:text-base">
+              {isSubmitting ? "hourglass_top" : "send"}
+            </span>
           </button>
         </div>
       </form>

@@ -118,6 +118,15 @@ export async function generatePdfReport(lb: any, options: any = null) {
   currentY = (doc as any).lastAutoTable.finalY + 10;
 
   // 2. Detail Bencana (Dinamis)
+  const FIELD_UNITS: Record<string, string> = {
+    luas_genangan:   "m²",
+    luas_terbakar:   "Ha",
+    luas_lahan:      "Ha",
+    jumlah_bergejala:"jiwa",
+    jumlah_kk:       "KK",
+    dimensi_longsor: "m",
+  };
+
   if (lb.detail && lb.jenis_bencana) {
     const fieldMap = FIELD_OPT_KEYS[lb.jenis_bencana] ?? {};
     const skip = new Set(["laporan_id", "created_at", "updated_at"]);
@@ -126,7 +135,13 @@ export async function generatePdfReport(lb: any, options: any = null) {
     if (entries.length > 0) {
       const detailBody = entries.map(([key, val]) => {
         const optKey = fieldMap[key] ?? null;
-        const label = resolveLabel(val, optKey, options);
+        let label = resolveLabel(val, optKey, options);
+        
+        const unit = FIELD_UNITS[key];
+        if (unit && label && label !== "-" && !isNaN(Number(label))) {
+          label = `${label} ${unit}`;
+        }
+        
         const displayKey = key.replace(/_ids?$/, "").replace(/_/g, " ").toUpperCase();
         return [displayKey, label];
       }).filter(([_, label]) => label !== "-" && label !== "null");

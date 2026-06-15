@@ -52,7 +52,7 @@ export default function RekapKecPage() {
   const filtered = laporan.filter((item) => {
     if (filterJenis !== "semua" && item.jenis_bencana !== filterJenis) return false;
     if (tanggalDari && new Date(item.waktu_kejadian) < new Date(tanggalDari)) return false;
-    if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai)) return false;
+    if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai + "T23:59:59")) return false;
     return true;
   });
 
@@ -82,38 +82,53 @@ export default function RekapKecPage() {
           </div>
 
           {/* Filter Bar */}
-          <div className="p-4 rounded-xl flex flex-wrap items-end gap-4 bg-white border border-slate-200 shadow-sm">
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Jenis Bencana</label>
-              <select className="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
-                value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
-                <option value="semua">Semua Jenis</option>
-                {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
-              </select>
+          <div className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
+                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                  value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
+                  <option value="semua">Semua Jenis</option>
+                  {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5 lg:col-span-2">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>
+                <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dari Tanggal</span>
+                    <input type="date" className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" 
+                           value={tanggalDari} max={tanggalSampai || undefined} 
+                           onChange={(e) => setTanggalDari(e.target.value)} />
+                  </div>
+                  <span className="hidden sm:flex h-11 items-center justify-center text-slate-400 text-xs font-bold px-1">s/d</span>
+                  <div className="min-w-0">
+                    <span className="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sampai Tanggal</span>
+                    <input type="date" className="min-w-0 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-[13px] text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" 
+                           value={tanggalSampai} min={tanggalDari || undefined} 
+                           onChange={(e) => setTanggalSampai(e.target.value)} />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Dari Tanggal</label>
-              <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
-                value={tanggalDari} max={tanggalSampai || undefined} onChange={(e) => setTanggalDari(e.target.value)} />
+
+            {/* Reset Filter Row */}
+            <div className="flex justify-start mt-4">
+              <button onClick={() => { setFilterJenis("semua"); setTanggalDari(""); setTanggalSampai(""); }}
+                className="w-full sm:w-auto h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold border border-slate-200 transition-colors shadow-sm">
+                Reset Filter
+              </button>
             </div>
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Sampai Tanggal</label>
-              <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
-                value={tanggalSampai} min={tanggalDari || undefined} onChange={(e) => setTanggalSampai(e.target.value)} />
-            </div>
-            <button onClick={() => { setFilterJenis("semua"); setTanggalDari(""); setTanggalSampai(""); }}
-              className="px-5 py-2 bg-slate-100 text-slate-600 font-semibold rounded-lg hover:bg-slate-200 text-sm">
-              Reset
-            </button>
           </div>
 
           {/* Tabel */}
           <div className="rounded-xl overflow-hidden bg-white border border-slate-200 shadow-sm">
-            <table className="w-full border-collapse">
+            <div className="-mx-4 sm:mx-0 overflow-x-auto">
+              <table className="min-w-[900px] w-full border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   {["Tanggal", "Jenis Bencana", "Lokasi", "Pelapor", "Status Siaga", "Korban (LR/LB/M)", "Aksi"].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className={`px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap ${h === "Korban (LR/LB/M)" ? "text-center" : "text-left"}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -148,12 +163,24 @@ export default function RekapKecPage() {
                           {siaga.label}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-center font-mono text-sm bg-slate-50">
-                        {item.korban_luka_ringan ?? 0} / {item.korban_luka_berat ?? 0} / <strong className="text-red-600">{item.korban_meninggal ?? 0}</strong>
+                      <td className="px-5 py-4 bg-slate-50">
+                        <div className="flex items-center justify-center gap-1.5 font-mono text-xs">
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded bg-yellow-50 text-yellow-600 border border-yellow-200 font-bold" title="Luka Ringan">
+                            {item.korban_luka_ringan ?? 0}
+                          </span>
+                          <span className="text-slate-300">/</span>
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded bg-orange-50 text-orange-600 border border-orange-200 font-bold" title="Luka Berat">
+                            {item.korban_luka_berat ?? 0}
+                          </span>
+                          <span className="text-slate-300">/</span>
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded bg-red-50 text-red-600 border border-red-200 font-bold" title="Meninggal">
+                            {item.korban_meninggal ?? 0}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-5 py-4">
                         <button onClick={() => navigate(`/detail/${item.id}`)}
-                          className="text-amber-600 hover:text-amber-800 transition-colors" title="Lihat Detail">
+                          className="p-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg transition-all duration-200 hover:bg-amber-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(217,119,6,0.4)] flex items-center justify-center" title="Lihat Detail">
                           <span className="material-symbols-outlined text-[20px]">visibility</span>
                         </button>
                       </td>
@@ -162,7 +189,8 @@ export default function RekapKecPage() {
                 })}
               </tbody>
             </table>
-            {filtered.length > 0 && (
+          </div>
+          {filtered.length > 0 && (
               <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <p className="text-xs text-slate-500">
                   Menampilkan <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri

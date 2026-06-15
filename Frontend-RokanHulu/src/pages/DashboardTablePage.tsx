@@ -72,8 +72,8 @@ export default function DashboardTablePage() {
           <span className="text-slate-300 text-xs font-semibold">Dashboard Kecamatan</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-slate-400 text-xs">{user?.name}</span>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 uppercase">
+          <span className="text-slate-400 text-xs truncate max-w-[120px] sm:max-w-none">{user?.name}</span>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 uppercase flex-shrink-0">
             {role}
           </span>
           <button
@@ -126,12 +126,12 @@ export default function DashboardTablePage() {
           <input
             type="text"
             placeholder="Cari laporan (jenis, pelapor, kecamatan)..."
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full sm:flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
-            className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -151,8 +151,8 @@ export default function DashboardTablePage() {
               <p className="text-slate-500 text-sm">Memuat data laporan...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="-mx-4 sm:mx-0 overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     {["#", "Jenis Bencana", "Waktu Kejadian", "Pelapor", "Kecamatan", "Status", "Aksi"].map((h) => (
@@ -196,7 +196,7 @@ export default function DashboardTablePage() {
                           <td className="p-4">
                             <button
                               onClick={() => navigate(`/detail/${item.id}`)}
-                              className="text-amber-600 hover:text-amber-800 font-bold text-xs bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors"
+                              className="text-amber-600 font-bold text-xs bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg transition-all duration-200 hover:bg-amber-100 hover:scale-105 active:scale-95 hover:shadow-[0_0_12px_rgba(217,119,6,0.3)] flex items-center gap-1"
                             >
                               Detail →
                             </button>

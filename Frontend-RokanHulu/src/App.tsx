@@ -11,6 +11,7 @@ import EditPage from "./pages/EditPage";
 import EditDetailPage from "./pages/EditDetailPage";
 import DashboardTablePage from "./pages/DashboardTablePage";
 import LoginPage from "./pages/LoginPage";
+import AdministratorPage from "./pages/AdministratorPage";
 
 import { useAuth } from "./state/AuthContext";
 
@@ -76,6 +77,16 @@ export default function App() {
           element={
             <RoleRoute allow={["admin", "admin_kab", "pimpinan"]}>
               <InfografisPage />
+            </RoleRoute>
+          }
+        />
+
+        {/* Administrator — Admin Kab Only */}
+        <Route
+          path="/administrator"
+          element={
+            <RoleRoute allow={["admin", "admin_kab"]}>
+              <AdministratorPage />
             </RoleRoute>
           }
         />
