@@ -49,10 +49,20 @@ export default function RekapKecPage() {
     status: item.status ?? "siaga3",
   }));
 
+  const toLocalDateString = (dateInput: string | Date) => {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const date = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${date}`;
+  };
+
   const filtered = laporan.filter((item) => {
     if (filterJenis !== "semua" && item.jenis_bencana !== filterJenis) return false;
-    if (tanggalDari && new Date(item.waktu_kejadian) < new Date(tanggalDari)) return false;
-    if (tanggalSampai && new Date(item.waktu_kejadian) > new Date(tanggalSampai + "T23:59:59")) return false;
+    const itemLocalDate = toLocalDateString(item.waktu_kejadian);
+    if (tanggalDari && itemLocalDate < tanggalDari) return false;
+    if (tanggalSampai && itemLocalDate > tanggalSampai) return false;
     return true;
   });
 
@@ -86,11 +96,14 @@ export default function RekapKecPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
-                <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-                  value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
-                  <option value="semua">Semua Jenis</option>
-                  {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
-                </select>
+                <div className="min-w-0">
+                  <span className="block mb-1 text-[10px] font-bold text-transparent select-none uppercase tracking-wider">&nbsp;</span>
+                  <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                    value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
+                    <option value="semua">Semua Jenis</option>
+                    {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex flex-col gap-1.5 lg:col-span-2">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Periode</label>

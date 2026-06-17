@@ -23,7 +23,7 @@ const getLocalDateString = () => {
   return `${year}-${month}-${date}`;
 };
 
-const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string) => void }) => {
+const TimeInput = ({ value, dateVal, onChange }: { value: string; dateVal: string; onChange: (val: string) => void }) => {
   const [showPicker, setShowPicker] = useState(false);
   const hourRef = useRef<HTMLDivElement>(null);
   const minuteRef = useRef<HTMLDivElement>(null);
@@ -45,26 +45,24 @@ const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string)
       const hourVal = parseInt(h) || 0;
       const minVal = parseInt(m) || 0;
       setTime({ hour: hourVal, minute: minVal });
+      if (hourRef.current) {
+        hourRef.current.scrollTop = hourVal * 36;
+      }
+      if (minuteRef.current) {
+        minuteRef.current.scrollTop = minVal * 36;
+      }
     }
   }, [value]);
 
   const selectHour = (h: number) => {
-    setTime(prev => {
-      const updated = { ...prev, hour: h };
-      onChange(`${String(updated.hour).padStart(2, "0")}:${String(updated.minute).padStart(2, "0")}`);
-      return updated;
-    });
+    setTime(prev => ({ ...prev, hour: h }));
     if (hourRef.current) {
       hourRef.current.scrollTo({ top: h * 36, behavior: "smooth" });
     }
   };
 
   const selectMinute = (m: number) => {
-    setTime(prev => {
-      const updated = { ...prev, minute: m };
-      onChange(`${String(updated.hour).padStart(2, "0")}:${String(updated.minute).padStart(2, "0")}`);
-      return updated;
-    });
+    setTime(prev => ({ ...prev, minute: m }));
     if (minuteRef.current) {
       minuteRef.current.scrollTo({ top: m * 36, behavior: "smooth" });
     }
@@ -84,21 +82,33 @@ const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string)
     const index = Math.round(scrollTop / 36);
     if (isHour) {
       if (index >= 0 && index < 24 && index !== time.hour) {
-        setTime(prev => {
-          const updated = { ...prev, hour: index };
-          onChange(`${String(updated.hour).padStart(2, "0")}:${String(updated.minute).padStart(2, "0")}`);
-          return updated;
-        });
+        setTime(prev => ({ ...prev, hour: index }));
       }
     } else {
       if (index >= 0 && index < 60 && index !== time.minute) {
-        setTime(prev => {
-          const updated = { ...prev, minute: index };
-          onChange(`${String(updated.hour).padStart(2, "0")}:${String(updated.minute).padStart(2, "0")}`);
-          return updated;
-        });
+        setTime(prev => ({ ...prev, minute: index }));
       }
     }
+  };
+
+  const handleClose = () => {
+    const today = getLocalDateString();
+    let finalHour = time.hour;
+    let finalMinute = time.minute;
+
+    if (dateVal === today) {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const selectedTime = `${String(finalHour).padStart(2, "0")}:${String(finalMinute).padStart(2, "0")}`;
+      if (selectedTime > currentTime) {
+        alert("Waktu kejadian tidak boleh melebihi waktu saat ini! Waktu disesuaikan ke jam sekarang.");
+        finalHour = now.getHours();
+        finalMinute = now.getMinutes();
+        setTime({ hour: finalHour, minute: finalMinute });
+      }
+    }
+    onChange(`${String(finalHour).padStart(2, "0")}:${String(finalMinute).padStart(2, "0")}`);
+    setShowPicker(false);
   };
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -118,7 +128,7 @@ const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string)
 
       {showPicker && (
         <>
-          <div className="fixed inset-0 z-[1999] bg-black/20" onClick={() => setShowPicker(false)} />
+          <div className="fixed inset-0 z-[1999] bg-black/20" onClick={handleClose} />
           <div className="absolute right-0 bottom-full mb-2 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-[2000] w-64 text-white">
             <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-400 mb-2">Pilih Waktu</div>
             
@@ -184,7 +194,7 @@ const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string)
               </button>
               <button
                 type="button"
-                onClick={() => setShowPicker(false)}
+                onClick={handleClose}
                 className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-xs font-bold rounded-lg text-slate-950 transition-colors"
               >
                 Selesai
@@ -423,7 +433,7 @@ export default function Step1Identitas() {
     if (!position) return alert("Klik pada peta atau isi koordinat manual untuk menentukan titik lokasi kejadian!");
     
     if (laporan.waktu_kejadian) {
-      const [datePart, timePart] = laporan.waktu_kejadian.split("T");
+      const [datePart, timePart] = laporan.waktu_kejadian.split(/[T ]/);
       const today = getLocalDateString();
       
       if (datePart > today) {
@@ -475,15 +485,17 @@ export default function Step1Identitas() {
               type="date"
               max={getLocalDateString()}
               className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none transition-all text-sm"
-              value={laporan.waktu_kejadian ? laporan.waktu_kejadian.split("T")[0] : ""}
+              value={laporan.waktu_kejadian ? laporan.waktu_kejadian.split(/[T ]/)[0] : ""}
               onChange={(e) => {
                 const selectedVal = e.target.value;
                 const maxVal = getLocalDateString();
                 if (selectedVal > maxVal) {
                   alert("Tanggal kejadian tidak boleh di masa depan!");
+                  const timePart = laporan.waktu_kejadian ? (laporan.waktu_kejadian.split(/[T ]/)[1] || "00:00") : "00:00";
+                  setLaporan({ waktu_kejadian: `${maxVal}T${timePart}` });
                   return;
                 }
-                const timePart = laporan.waktu_kejadian ? (laporan.waktu_kejadian.split("T")[1] || "00:00") : "00:00";
+                const timePart = laporan.waktu_kejadian ? (laporan.waktu_kejadian.split(/[T ]/)[1] || "00:00") : "00:00";
                 if (selectedVal === maxVal) {
                   const now = new Date();
                   const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
@@ -497,20 +509,12 @@ export default function Step1Identitas() {
               }}
             />
             <TimeInput
-              value={laporan.waktu_kejadian ? (laporan.waktu_kejadian.split("T")[1]?.slice(0, 5) || "") : ""}
+              value={laporan.waktu_kejadian ? (laporan.waktu_kejadian.split(/[T ]/)[1]?.slice(0, 5) || "") : ""}
+              dateVal={laporan.waktu_kejadian ? (laporan.waktu_kejadian.split(/[T ]/)[0] || getLocalDateString()) : getLocalDateString()}
               onChange={(val) => {
-                const datePart = (laporan.waktu_kejadian && laporan.waktu_kejadian.includes("T")) 
-                  ? laporan.waktu_kejadian.split("T")[0] 
+                const datePart = laporan.waktu_kejadian
+                  ? laporan.waktu_kejadian.split(/[T ]/)[0]
                   : getLocalDateString();
-                const today = getLocalDateString();
-                if (datePart === today) {
-                  const now = new Date();
-                  const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-                  if (val > currentTime) {
-                    alert("Waktu kejadian tidak boleh melebihi waktu saat ini!");
-                    return;
-                  }
-                }
                 setLaporan({ waktu_kejadian: `${datePart}T${val}` });
               }}
             />

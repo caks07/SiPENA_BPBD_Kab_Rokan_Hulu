@@ -67,8 +67,39 @@ function createDisasterIcon(jenis: string, status: string, isNew: boolean) {
 
 export default function DashboardMapPage() {
   const navigate = useNavigate();
-  const [filterBencana, setFilterBencana] = useState("semua");
-  const [filterStatus, setFilterStatus] = useState("semua");
+  const [filterBencana, setFilterBencana] = useState<string[]>(["semua"]);
+  const [filterStatus, setFilterStatus] = useState<string[]>(["semua"]);
+
+  const toggleBencana = (j: string) => {
+    setFilterBencana((prev) => {
+      if (j === "semua") return ["semua"];
+      const next = prev.filter((item) => item !== "semua");
+      if (next.includes(j)) {
+        const updated = next.filter((item) => item !== j);
+        return updated.length === 0 ? ["semua"] : updated;
+      } else {
+        return [...next, j];
+      }
+    });
+  };
+
+  const toggleStatus = (s: string) => {
+    setFilterStatus((prev) => {
+      if (s === "semua") return ["semua"];
+      const next = prev.filter((item) => item !== "semua");
+      if (next.includes(s)) {
+        const updated = next.filter((item) => item !== s);
+        return updated.length === 0 ? ["semua"] : updated;
+      } else {
+        return [...next, s];
+      }
+    });
+  };
+
+  const resetFilters = () => {
+    setFilterBencana(["semua"]);
+    setFilterStatus(["semua"]);
+  };
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [geojsonData, setGeojsonData] = useState<any>(null);
 
@@ -100,11 +131,14 @@ export default function DashboardMapPage() {
     .filter((i) => !isNaN(i.latitude) && !isNaN(i.longitude) && i.latitude !== 0);
 
   const filtered = laporan.filter((i) => {
-    if (filterBencana !== "semua" && i.jenis_bencana !== filterBencana) return false;
-    // "semua" hanya tampilkan siaga1, siaga2, siaga3 — BUKAN selesai
-    // "selesai" hanya tampilkan laporan dengan status selesai
-    if (filterStatus === "semua" && i.status === "selesai") return false;
-    if (filterStatus !== "semua" && i.status !== filterStatus) return false;
+    if (filterBencana.length > 0 && !filterBencana.includes("semua")) {
+      if (!filterBencana.includes(i.jenis_bencana)) return false;
+    }
+    if (filterStatus.length > 0 && !filterStatus.includes("semua")) {
+      if (!filterStatus.includes(i.status)) return false;
+    } else {
+      if (i.status === "selesai") return false;
+    }
     return true;
   });
 
@@ -324,9 +358,9 @@ export default function DashboardMapPage() {
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {["semua", ...uniqueJenis].map((j) => {
-              const active = filterBencana === j;
+              const active = filterBencana.includes(j);
               return (
-                <button key={j} onClick={() => setFilterBencana(j)} style={{
+                <button key={j} onClick={() => toggleBencana(j)} style={{
                   textAlign: "left", background: active ? "#F39200" : "transparent",
                   color: active ? "white" : "rgba(148,163,184,0.9)",
                   border: "none", borderRadius: 8, padding: "7px 10px", fontSize: 11,
@@ -353,10 +387,10 @@ export default function DashboardMapPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {(["semua", "siaga1", "siaga2", "siaga3", "selesai"] as const).map((s) => {
               // Label khusus untuk filter
-              const active = filterStatus === s;
+              const active = filterStatus.includes(s);
               const col = STATUS_COLOR[s];
               return (
-                <button key={s} onClick={() => setFilterStatus(s)} style={{
+                <button key={s} onClick={() => toggleStatus(s)} style={{
                   textAlign: "left", background: active ? (col ?? "#F39200") : "transparent",
                   color: active ? "white" : "rgba(148,163,184,0.9)",
                   border: "none", borderRadius: 8, padding: "7px 10px", fontSize: 11,
@@ -371,6 +405,15 @@ export default function DashboardMapPage() {
             })}
           </div>
         </div>
+
+        {/* Reset Filter Button */}
+        <button
+          onClick={resetFilters}
+          className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-3 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 border border-white/5"
+        >
+          <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+          Reset Filter
+        </button>
 
         {/* Ringkasan */}
         <div className="flex-shrink-0 w-full" style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>

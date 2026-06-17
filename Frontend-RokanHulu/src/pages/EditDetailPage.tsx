@@ -17,48 +17,188 @@ import api from "../api/client";
 import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
 
-/** Custom TimeInput: ketik HH:mm manual, 24-jam */
-const TimeInput = ({ value, onChange }: { value: string; onChange: (val: string) => void }) => {
-  const [internal, setInternal] = useState(value);
-  useEffect(() => { setInternal(value); }, [value]);
+/** Custom TimeInput: wheel picker HH:mm slider */
+const TimeInput = ({ value, dateVal, onChange }: { value: string; dateVal: string; onChange: (val: string) => void }) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const hourRef = useRef<HTMLDivElement>(null);
+  const minuteRef = useRef<HTMLDivElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value.replace(/[^0-9:]/g, "");
-    const colons = val.match(/:/g);
-    if (colons && colons.length > 1) return;
-    const native = e.nativeEvent as InputEvent;
-    if (val.length === 2 && !val.includes(":") && native.inputType !== "deleteContentBackward") val += ":";
-    if (val.length === 4 && !val.includes(":")) val = val.slice(0, 2) + ":" + val.slice(2);
-    if (val.length > 5) return;
-    setInternal(val);
-    if (val.length === 5 && val.includes(":")) {
-      const [h, m] = val.split(":");
-      if (parseInt(h) <= 23 && parseInt(m) <= 59) onChange(val);
-    } else if (val === "") onChange("");
+  const getInitialTime = () => {
+    if (value && value.includes(":")) {
+      const [h, m] = value.split(":");
+      return { hour: parseInt(h) || 0, minute: parseInt(m) || 0 };
+    }
+    const now = new Date();
+    return { hour: now.getHours(), minute: now.getMinutes() };
   };
 
-  const handleBlur = () => {
-    let val = internal;
-    if (!val) return;
-    if (!val.includes(":")) {
-      if (val.length <= 2) val = val.padStart(2, "0") + ":00";
-      else { val = val.padStart(4, "0"); val = val.slice(0, 2) + ":" + val.slice(2); }
+  const [time, setTime] = useState(getInitialTime);
+
+  useEffect(() => {
+    if (value && value.includes(":")) {
+      const [h, m] = value.split(":");
+      const hourVal = parseInt(h) || 0;
+      const minVal = parseInt(m) || 0;
+      setTime({ hour: hourVal, minute: minVal });
+      if (hourRef.current) {
+        hourRef.current.scrollTop = hourVal * 36;
+      }
+      if (minuteRef.current) {
+        minuteRef.current.scrollTop = minVal * 36;
+      }
+    }
+  }, [value]);
+
+  const selectHour = (h: number) => {
+    setTime(prev => ({ ...prev, hour: h }));
+    if (hourRef.current) {
+      hourRef.current.scrollTo({ top: h * 36, behavior: "smooth" });
+    }
+  };
+
+  const selectMinute = (m: number) => {
+    setTime(prev => ({ ...prev, minute: m }));
+    if (minuteRef.current) {
+      minuteRef.current.scrollTo({ top: m * 36, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    if (showPicker) {
+      setTimeout(() => {
+        if (hourRef.current) hourRef.current.scrollTop = time.hour * 36;
+        if (minuteRef.current) minuteRef.current.scrollTop = time.minute * 36;
+      }, 50);
+    }
+  }, [showPicker]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>, isHour: boolean) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    const index = Math.round(scrollTop / 36);
+    if (isHour) {
+      if (index >= 0 && index < 24 && index !== time.hour) {
+        setTime(prev => ({ ...prev, hour: index }));
+      }
     } else {
-      const [h2, m2] = val.split(":");
-      val = `${h2.padStart(2, "0")}:${(m2 || "0").padStart(2, "0")}`;
+      if (index >= 0 && index < 60 && index !== time.minute) {
+        setTime(prev => ({ ...prev, minute: index }));
+      }
     }
-    const [h, m] = val.split(":");
-    if (parseInt(h) > 23 || parseInt(m) > 59) {
-      alert("Format waktu tidak valid! Jam (00-23) dan Menit (00-59).");
-      setInternal(""); onChange("00:00"); return;
-    }
-    setInternal(val); onChange(val);
   };
+
+  const handleClose = () => {
+    const today = getLocalDateString();
+    let finalHour = time.hour;
+    let finalMinute = time.minute;
+
+    if (dateVal === today) {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const selectedTime = `${String(finalHour).padStart(2, "0")}:${String(finalMinute).padStart(2, "0")}`;
+      if (selectedTime > currentTime) {
+        alert("Waktu kejadian tidak boleh melebihi waktu saat ini! Waktu disesuaikan ke jam sekarang.");
+        finalHour = now.getHours();
+        finalMinute = now.getMinutes();
+        setTime({ hour: finalHour, minute: finalMinute });
+      }
+    }
+    onChange(`${String(finalHour).padStart(2, "0")}:${String(finalMinute).padStart(2, "0")}`);
+    setShowPicker(false);
+  };
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const formatted = `${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
 
   return (
-    <input type="text" required placeholder="HH:mm" maxLength={5}
-      className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none text-center font-mono flex-shrink-0"
-      value={internal} onChange={handleChange} onBlur={handleBlur} />
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setShowPicker(true)}
+        className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition-all text-sm h-[42px]"
+      >
+        <span className="material-symbols-outlined text-[18px] text-slate-400">schedule</span>
+        {formatted}
+      </button>
+
+      {showPicker && (
+        <>
+          <div className="fixed inset-0 z-[1999] bg-black/20" onClick={handleClose} />
+          <div className="absolute right-0 bottom-full mb-2 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-[2000] w-64 text-white">
+            <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-400 mb-2">Pilih Waktu</div>
+            
+            {/* Wheel container */}
+            <div className="relative h-[144px] bg-slate-950 rounded-xl overflow-hidden flex justify-center border border-slate-800">
+              {/* Active highlight overlay */}
+              <div className="absolute left-0 right-0 top-[54px] h-[36px] bg-slate-800/50 border-y border-slate-700 pointer-events-none z-10" />
+
+              {/* Hours Column */}
+              <div
+                ref={hourRef}
+                onScroll={(e) => handleScroll(e, true)}
+                className="w-16 h-full overflow-y-auto scrollbar-none snap-y snap-mandatory py-[54px] z-20 text-center"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {hours.map((h) => (
+                  <div
+                    key={`h-${h}`}
+                    onClick={() => selectHour(h)}
+                    className={`h-[36px] snap-center flex items-center justify-center font-mono font-bold text-lg cursor-pointer transition-colors ${
+                      time.hour === h ? "text-amber-400 font-extrabold text-xl scale-110" : "text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    {String(h).padStart(2, "0")}
+                  </div>
+                ))}
+              </div>
+
+              <div className="h-full flex items-center justify-center font-bold text-slate-400 px-2 z-10">:</div>
+
+              {/* Minutes Column */}
+              <div
+                ref={minuteRef}
+                onScroll={(e) => handleScroll(e, false)}
+                className="w-16 h-full overflow-y-auto scrollbar-none snap-y snap-mandatory py-[54px] z-20 text-center"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {minutes.map((m) => (
+                  <div
+                    key={`m-${m}`}
+                    onClick={() => selectMinute(m)}
+                    className={`h-[36px] snap-center flex items-center justify-center font-mono font-bold text-lg cursor-pointer transition-colors ${
+                      time.minute === m ? "text-amber-400 font-extrabold text-xl scale-110" : "text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    {String(m).padStart(2, "0")}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  const now = new Date();
+                  selectHour(now.getHours());
+                  selectMinute(now.getMinutes());
+                }}
+                className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg text-slate-300 transition-colors"
+              >
+                Sekarang
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-xs font-bold rounded-lg text-slate-950 transition-colors"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
@@ -82,7 +222,7 @@ const FIELD_CONFIGS: Record<string, FieldCfg[]> = {
     { name: "penyebab_ids", label: "Kronologi Kejadian (Penyebab)", type: "checkbox", optKey: "opt_banjir_penyebab", required: true, showOtherField: true, otherName: "penyebab_lain" },
     { name: "ketinggian_banjir_id", label: "Ketinggian Banjir", type: "radio", optKey: "opt_banjir_ketinggian", required: true, showOtherField: true, otherName: "ketinggian_banjir_lain" },
     { name: "kondisi_air_id", label: "Kondisi Air Saat Ini", type: "radio", optKey: "opt_banjir_kondisi_air", required: true },
-    { name: "luas_genangan", label: "Estimasi Luas Genangan (m²)", type: "text", required: true },
+    { name: "luas_genangan", label: "Estimasi Luas Genangan (m²)", type: "number", required: true },
     { name: "kondisi_cuaca_id", label: "Kondisi Cuaca Saat Ini", type: "radio", optKey: "opt_kondisi_cuaca", required: true },
   ],
   banjir_bandang: [
@@ -202,6 +342,14 @@ function SectionHeader({ icon, title }: { icon: string; title: string }) {
   );
 }
 
+const getLocalDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const date = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${date}`;
+};
+
 export default function EditDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -285,7 +433,7 @@ export default function EditDetailPage() {
     if (!laporan) return;
     setStep1({
       nama_pelapor: laporan.nama_pelapor ?? "",
-      waktu_kejadian: laporan.waktu_kejadian ? laporan.waktu_kejadian.slice(0, 16) : "",
+      waktu_kejadian: laporan.waktu_kejadian ? laporan.waktu_kejadian.replace(" ", "T").slice(0, 16) : "",
       kecamatan_id: String(laporan.kecamatan_id ?? ""),
       lokasi_text: laporan.lokasi_text ?? "",
       latitude:  String(laporan.latitude  ?? ""),
@@ -331,6 +479,50 @@ export default function EditDetailPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (step1.waktu_kejadian) {
+      const [datePart, timePart] = step1.waktu_kejadian.split(/[T ]/);
+      const today = getLocalDateString();
+      if (datePart > today) {
+        alert("Tanggal kejadian tidak boleh di masa depan.");
+        return;
+      }
+      if (datePart === today) {
+        const now = new Date();
+        const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        if (timePart > currentTime) {
+          alert("Waktu kejadian tidak boleh melebihi waktu saat ini.");
+          return;
+        }
+      }
+    }
+
+    const jenisBencana = laporan?.jenis_bencana;
+    if (jenisBencana === "banjir") {
+      const luas = detailData.luas_genangan;
+      if (luas !== undefined && luas !== null && luas !== "") {
+        const num = Number(luas);
+        if (isNaN(num) || num <= 0) {
+          alert("Estimasi Luas Genangan harus lebih besar dari 0.");
+          return;
+        }
+      }
+    }
+    if (jenisBencana === "tanah_longsor") {
+      const dim = detailData.dimensi_longsor;
+      if (dim) {
+        const numbers = String(dim).match(/\d+(\.\d+)?/g);
+        if (numbers) {
+          for (const n of numbers) {
+            if (parseFloat(n) <= 0) {
+              alert("Dimensi Longsor (P x L x T) tidak boleh bernilai 0 atau negatif.");
+              return;
+            }
+          }
+        }
+      }
+    }
+
     setSaving(true);
     
     // Generate diff
@@ -352,6 +544,12 @@ export default function EditDetailPage() {
     addDiff("nama_pelapor", laporan.nama_pelapor, step1.nama_pelapor);
     addDiff("lokasi_text", laporan.lokasi_text, step1.lokasi_text);
     addDiff("kecamatan_id", laporan.kecamatan_id, Number(step1.kecamatan_id));
+
+    const normalizeDateTime = (dtStr: string) => {
+      if (!dtStr) return "";
+      return dtStr.replace(" ", "T").slice(0, 16);
+    };
+    addDiff("waktu_kejadian", normalizeDateTime(laporan.waktu_kejadian), normalizeDateTime(step1.waktu_kejadian));
 
     const reqLat = position?.[0] ?? Number(step1.latitude);
     const reqLng = position?.[1] ?? Number(step1.longitude);
@@ -474,21 +672,39 @@ export default function EditDetailPage() {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tanggal & Waktu Kejadian</label>
                       <div className="flex gap-2">
-                        <input required type="date" max={new Date().toISOString().slice(0, 10)}
+                        <input required type="date" max={getLocalDateString()}
                           className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-                          value={step1.waktu_kejadian ? step1.waktu_kejadian.split("T")[0] : ""}
+                          value={step1.waktu_kejadian ? step1.waktu_kejadian.split(/[T ]/)[0] : ""}
                           onChange={e => {
-                            const timePart = step1.waktu_kejadian ? (step1.waktu_kejadian.split("T")[1] || "00:00") : "00:00";
-                            setStep1(p => ({ ...p, waktu_kejadian: `${e.target.value}T${timePart.slice(0,5)}` }));
+                            const selectedVal = e.target.value;
+                            const maxVal = getLocalDateString();
+                            if (selectedVal > maxVal) {
+                              alert("Tanggal kejadian tidak boleh di masa depan!");
+                              const timePart = step1.waktu_kejadian ? (step1.waktu_kejadian.split(/[T ]/)[1] || "00:00") : "00:00";
+                              setStep1(p => ({ ...p, waktu_kejadian: `${maxVal}T${timePart}` }));
+                              return;
+                            }
+                            const timePart = step1.waktu_kejadian ? (step1.waktu_kejadian.split(/[T ]/)[1] || "00:00") : "00:00";
+                            if (selectedVal === maxVal) {
+                              const now = new Date();
+                              const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+                              if (timePart.slice(0, 5) > currentTime) {
+                                alert("Waktu kejadian melebihi waktu saat ini! Waktu disesuaikan ke jam sekarang.");
+                                setStep1(p => ({ ...p, waktu_kejadian: `${selectedVal}T${currentTime}` }));
+                                return;
+                              }
+                            }
+                            setStep1(p => ({ ...p, waktu_kejadian: `${selectedVal}T${timePart.slice(0,5)}` }));
                           }} />
                         <TimeInput
-                          value={step1.waktu_kejadian ? (step1.waktu_kejadian.split("T")[1]?.slice(0, 5) || "") : ""}
+                          value={step1.waktu_kejadian ? (step1.waktu_kejadian.split(/[T ]/)[1]?.slice(0, 5) || "") : ""}
+                          dateVal={step1.waktu_kejadian ? (step1.waktu_kejadian.split(/[T ]/)[0] || getLocalDateString()) : getLocalDateString()}
                           onChange={val => {
-                            const datePart = step1.waktu_kejadian?.includes("T") ? step1.waktu_kejadian.split("T")[0] : new Date().toISOString().slice(0, 10);
+                            const datePart = step1.waktu_kejadian ? step1.waktu_kejadian.split(/[T ]/)[0] : getLocalDateString();
                             setStep1(p => ({ ...p, waktu_kejadian: `${datePart}T${val}` }));
                           }} />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Ketik waktu kejadian (HH:mm) dengan angka</p>
+                      <p className="text-[10px] text-slate-400 mt-1">Gunakan jam scroll-wheel di sebelah kanan untuk memilih jam.</p>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Kecamatan</label>
@@ -638,7 +854,7 @@ export default function EditDetailPage() {
                                 onChange={e => {
                                   let val = e.target.value;
                                   if (field.name === "dimensi_longsor") {
-                                    val = val.replace(/[^0-9xX.,\- ]/g, '');
+                                    val = val.replace(/[^0-9xX., ]/g, '');
                                   } else if (field.type === "number") {
                                     val = val.replace(/[^0-9]/g, '');
                                     if (val !== "") {

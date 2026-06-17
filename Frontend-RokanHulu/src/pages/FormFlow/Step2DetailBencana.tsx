@@ -109,6 +109,31 @@ export default function Step2DetailBencana() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (jenis_bencana === "banjir") {
+      const luas = detail.luas_genangan;
+      if (luas !== undefined && luas !== null && luas !== "") {
+        const num = Number(luas);
+        if (isNaN(num) || num <= 0) {
+          alert("Estimasi Luas Genangan harus lebih besar dari 0.");
+          return;
+        }
+      }
+    }
+    if (jenis_bencana === "tanah_longsor") {
+      const dim = detail.dimensi_longsor;
+      if (dim) {
+        const numbers = String(dim).match(/\d+(\.\d+)?/g);
+        if (numbers) {
+          for (const n of numbers) {
+            if (parseFloat(n) <= 0) {
+              alert("Dimensi Longsor (P x L x T) tidak boleh bernilai 0 atau negatif.");
+              return;
+            }
+          }
+        }
+      }
+    }
+
     // Check required fields
     for (const field of fields) {
       if (field.required) {
@@ -206,7 +231,7 @@ export default function Step2DetailBencana() {
             value={detail[field.name] || ""}
             onChange={e => {
               if (field.name === "dimensi_longsor") {
-                let val = e.target.value.replace(/[^0-9xX.,\- ]/g, '');
+                let val = e.target.value.replace(/[^0-9xX., ]/g, '');
                 setField(field.name, val);
               } else if (field.type === "number") {
                 let val = e.target.value.replace(/[^0-9]/g, '');

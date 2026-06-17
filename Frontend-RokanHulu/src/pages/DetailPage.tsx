@@ -91,6 +91,10 @@ function formatValue(key: string, value: any, options: any, jenisBencana?: strin
     return `Kecamatan #${value}`;
   }
 
+  if (key === "waktu_kejadian") {
+    return formatLocal(value);
+  }
+
   if (key.includes("korban") || key.includes("jiwa")) {
     return `${value} jiwa`;
   }
