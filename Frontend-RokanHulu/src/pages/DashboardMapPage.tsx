@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, GeoJSON, Marker, Popup, ZoomControl } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
@@ -222,7 +222,7 @@ export default function DashboardMapPage() {
           {activeLayer === "satellite" && (
             <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
           )}
-          <ZoomControl position="bottomright" />
+
 
           {/* Batas kecamatan dari GeoJSON */}
           {geojsonData && (

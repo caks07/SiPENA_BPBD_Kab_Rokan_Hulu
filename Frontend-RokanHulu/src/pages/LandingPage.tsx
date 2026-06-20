@@ -23,11 +23,11 @@ function OfficialFigure({
   role: string;
 }) {
   return (
-    <div className="relative w-[155px] xl:w-[180px] 2xl:w-[205px] h-[265px] xl:h-[295px] 2xl:h-[325px] flex items-end justify-center overflow-hidden bg-transparent">
+    <div className="relative w-[155px] xl:w-[165px] 2xl:w-[190px] h-[265px] xl:h-[280px] 2xl:h-[310px] flex items-end justify-center overflow-hidden bg-transparent">
       <img
         src={src}
         alt={name}
-        className="h-[255px] xl:h-[285px] 2xl:h-[315px] w-auto max-w-none object-contain object-bottom drop-shadow-lg"
+        className="h-[255px] xl:h-[270px] 2xl:h-[300px] w-auto max-w-none object-contain object-bottom drop-shadow-lg"
       />
 
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent pt-12 pb-4 px-2 text-center">
@@ -145,8 +145,8 @@ export default function LandingPage() {
         </div>
 
         <div className="absolute inset-x-0 top-[112px] sm:top-[130px] md:top-[150px] xl:top-1/2 xl:-translate-y-1/2 z-30 px-4 text-center">
-          <div className="max-w-[760px] mx-auto">
-            <h1 className="text-[27px] sm:text-[36px] md:text-[46px] xl:text-[52px] leading-[1.12] font-black text-white uppercase tracking-tight drop-shadow-lg">
+          <div className="max-w-[480px] sm:max-w-[600px] xl:max-w-[580px] 2xl:max-w-[720px] 3xl:max-w-[800px] mx-auto">
+            <h1 className="text-[25px] sm:text-[34px] md:text-[40px] xl:text-[38px] 2xl:text-[46px] 3xl:text-[52px] leading-[1.12] font-black text-white uppercase tracking-tight drop-shadow-lg">
               <span className="block">Laporan Cepat Kejadian</span>
               <span className="block">Bencana</span>
               <span className="block">Kabupaten Rokan Hulu</span>

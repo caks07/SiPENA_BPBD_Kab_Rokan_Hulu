@@ -47,7 +47,7 @@ const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
   kekeringan: [
     { name: "sektor_terdampak_ids", label: "Sektor Terdampak", type: "checkbox", optKey: "opt_kekeringan_sektor", required: true },
     { name: "kondisi_air_id", label: "Kondisi Air / Sumber Air", type: "radio", optKey: "opt_kekeringan_kondisi_air", required: true },
-    { name: "luas_lahan", label: "Luas Lahan Terdampak (Ha)", type: "number" },
+    { name: "luas_lahan", label: "Luas Lahan Terdampak (Ha)", type: "number", required: true },
     { name: "jumlah_kk", label: "Jumlah KK Terdampak", type: "number", required: true },
     { name: "durasi_id", label: "Durasi Kekeringan", type: "radio", optKey: "opt_kekeringan_durasi", required: true },
     { name: "potensi_risiko_ids", label: "Potensi Risiko Lanjutan", type: "checkbox", optKey: "opt_kekeringan_potensi_risiko", showOtherField: true, otherName: "potensi_risiko_lain" },
@@ -56,7 +56,7 @@ const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
   karhutla: [
     { name: "kondisi_api_id", label: "Kondisi Api Saat Ini", type: "radio", optKey: "opt_karhutla_kondisi_api", required: true },
     { name: "jenis_lahan_id", label: "Jenis Lahan", type: "radio", optKey: "opt_karhutla_jenis_lahan", required: true },
-    { name: "luas_terbakar", label: "Estimasi Luas Lahan Terbakar (Ha)", type: "number" },
+    { name: "luas_terbakar", label: "Estimasi Luas Lahan Terbakar (Ha)", type: "number", required: true },
     { name: "pemilik_lahan_id", label: "Pemilik Lahan", type: "radio", optKey: "opt_karhutla_pemilik_lahan", required: true },
     { name: "jarak_ke_pemukiman_id", label: "Jarak ke Pemukiman Terdekat", type: "radio", optKey: "opt_karhutla_jarak_pemukiman", required: true },
     { name: "sumber_air_id", label: "Sumber Air Tersedia", type: "radio", optKey: "opt_karhutla_sumber_air", required: true },
@@ -134,9 +134,22 @@ export default function Step2DetailBencana() {
       }
     }
 
-    // Check required fields
+    // Check required fields and number fields
     for (const field of fields) {
-      if (field.required) {
+      if (field.type === "number") {
+        const val = detail[field.name];
+        if (val === undefined || val === null || String(val).trim() === "") {
+          alert(`Kolom "${field.label}" wajib diisi.`);
+          return;
+        }
+        const num = Number(val);
+        if (isNaN(num) || num <= 0) {
+          alert(`Kolom "${field.label}" tidak boleh bernilai 0 atau kurang dari 0.`);
+          return;
+        }
+      }
+
+      if (field.required && field.type !== "number") {
         if (field.type === "checkbox") {
           const val = detail[field.name];
           if (!Array.isArray(val) || val.length === 0) {
@@ -235,10 +248,12 @@ export default function Step2DetailBencana() {
                 setField(field.name, val);
               } else if (field.type === "number") {
                 let val = e.target.value.replace(/[^0-9]/g, '');
-                if (val !== "") {
-                  val = val.replace(/^0+(?=\d)/, '');
+                const slicedVal = val.slice(0, 9);
+                let cleanVal = slicedVal;
+                if (cleanVal !== "") {
+                  cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
                 }
-                setField(field.name, val);
+                setField(field.name, cleanVal);
               } else {
                 setField(field.name, e.target.value);
               }
@@ -271,7 +286,7 @@ export default function Step2DetailBencana() {
 
   return (
     // pb-28 agar konten terakhir tidak tertutup footer fixed
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8">
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
       <div className="border-t-8 border-amber-500 -mx-6 md:-mx-8 -mt-6 md:-mt-8 pt-6 px-6 md:px-8 mb-6 rounded-t-2xl">
         <h2 className="text-2xl font-bold text-slate-800 mt-2">Detail Bencana: {jenis_bencana.replace(/_/g, " ").toUpperCase()}</h2>
         <p className="text-slate-500 text-sm mt-1">Harap lengkapi informasi teknis mengenai kondisi bencana di lokasi kejadian.</p>
@@ -284,7 +299,7 @@ export default function Step2DetailBencana() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+        <div className="mt-8 flex justify-between items-center p-2 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={prevStep}
@@ -293,7 +308,7 @@ export default function Step2DetailBencana() {
             <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
             <span>Kembali</span>
           </button>
-          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 2/4</div>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap"><span className="hidden xs:inline">Langkah </span>2/4</div>
           <button
             type="submit"
             className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"

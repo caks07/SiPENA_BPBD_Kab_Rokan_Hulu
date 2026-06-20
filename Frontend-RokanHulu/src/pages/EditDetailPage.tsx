@@ -111,11 +111,11 @@ const TimeInput = ({ value, dateVal, onChange }: { value: string; dateVal: strin
   const formatted = `${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
 
   return (
-    <div className="relative">
+    <div className="relative w-full sm:w-auto">
       <button
         type="button"
         onClick={() => setShowPicker(true)}
-        className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition-all text-sm h-[42px]"
+        className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition-all text-sm h-[42px] w-full sm:w-auto justify-center"
       >
         <span className="material-symbols-outlined text-[18px] text-slate-400">schedule</span>
         {formatted}
@@ -671,9 +671,9 @@ export default function EditDetailPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tanggal & Waktu Kejadian</label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input required type="date" max={getLocalDateString()}
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                          className="w-full sm:flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none h-[42px] sm:h-auto"
                           value={step1.waktu_kejadian ? step1.waktu_kejadian.split(/[T ]/)[0] : ""}
                           onChange={e => {
                             const selectedVal = e.target.value;
@@ -742,7 +742,7 @@ export default function EditDetailPage() {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pin Lokasi</label>
                       <div style={{ display: "flex", overflow: "hidden", borderRadius: 6, border: "1px solid #e2e8f0" }}>
                         {(["satellite", "osm"] as const).map((layer) => (
-                          <button key={layer} type="button" onClick={() => setActiveLayer(layer)} style={{
+                          <button key={`layer-edit-${layer}`} type="button" onClick={() => setActiveLayer(layer)} style={{
                             padding: "4px 10px", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer",
                             background: activeLayer === layer ? "#F39200" : "white",
                             color: activeLayer === layer ? "white" : "#64748B", textTransform: "uppercase",
@@ -754,15 +754,15 @@ export default function EditDetailPage() {
                     </div>
                     <div style={{ height: 280, borderRadius: 12, overflow: "hidden", border: "2px solid #E2E8F0" }}>
                       <MapContainer center={position ?? [0.95, 100.25]} zoom={10} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} style={{ height: "100%", width: "100%" }} zoomControl={false}>
-                        <TileLayer key={`base-${activeLayer}`}
+                        <TileLayer key={`base-edit-${activeLayer}`}
                           url={activeLayer === "satellite"
                             ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
                           maxZoom={activeLayer === "satellite" ? 17 : 19} />
-                        {activeLayer === "satellite" && <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="shadowPane" />}
+                        {activeLayer === "satellite" && <TileLayer key="labels-satellite-edit" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="shadowPane" />}
                         {geojson && (geojson.features?.length ?? 0) > 0 && (
                           <GeoJSON
-                            key={`boundary-${activeLayer}-${geojson.features.length}`}
+                            key={`boundary-edit-${activeLayer}-${geojson.features.length}`}
                             data={geojson as any}
                             style={{
                               color: activeLayer === "satellite" ? "#FACC15" : "#1E40AF",
@@ -857,9 +857,12 @@ export default function EditDetailPage() {
                                     val = val.replace(/[^0-9xX., ]/g, '');
                                   } else if (field.type === "number") {
                                     val = val.replace(/[^0-9]/g, '');
-                                    if (val !== "") {
-                                      val = val.replace(/^0+(?=\d)/, '');
+                                    const slicedVal = val.slice(0, 9);
+                                    let cleanVal = slicedVal;
+                                    if (cleanVal !== "") {
+                                      cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
                                     }
+                                    val = cleanVal;
                                   }
                                   setDetailData(p => ({ ...p, [field.name]: val }));
                                 }}
@@ -896,7 +899,12 @@ export default function EditDetailPage() {
                           (f as any).danger ? "bg-red-50 border-red-200 focus:ring-red-400 text-red-700" : "bg-slate-50 border-slate-200 focus:ring-amber-400"
                         }`}
                         value={korban[f.name] ?? 0}
-                        onChange={e => setKorban(prev => ({ ...prev, [f.name]: Number(e.target.value) }))}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          const slicedVal = val.slice(0, 9);
+                          const cleanVal = slicedVal === "" ? 0 : Number(slicedVal);
+                          setKorban(prev => ({ ...prev, [f.name]: cleanVal }));
+                        }}
                         onKeyDown={e => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
                       />
                     </div>
@@ -917,7 +925,12 @@ export default function EditDetailPage() {
                       <input type="number" min={0} placeholder="0"
                         className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 font-mono text-lg focus:ring-2 focus:ring-amber-400 outline-none"
                         value={kerusakan[name] ?? 0}
-                        onChange={e => setKerusakan(prev => ({ ...prev, [name]: Number(e.target.value) }))}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          const slicedVal = val.slice(0, 9);
+                          const cleanVal = slicedVal === "" ? 0 : Number(slicedVal);
+                          setKerusakan(prev => ({ ...prev, [name]: cleanVal }));
+                        }}
                         onKeyDown={e => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
                       />
                     </div>

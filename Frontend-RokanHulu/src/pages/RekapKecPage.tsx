@@ -7,6 +7,7 @@ import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
 import { useAuth } from "../state/AuthContext";
 import { useEffect } from "react";
+import CustomSelect from "../components/CustomSelect";
 
 
 const SIAGA_STYLE: Record<string, { cls: string; label: string }> = {
@@ -33,7 +34,7 @@ export default function RekapKecPage() {
   const [tanggalDari, setTanggalDari] = useState("");
   const [tanggalSampai, setTanggalSampai] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   const { data: laporanRaw = [], isLoading } = useQuery({
     queryKey: ["rekap-kecamatan"],
@@ -98,11 +99,16 @@ export default function RekapKecPage() {
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
                 <div className="min-w-0">
                   <span className="block mb-1 text-[10px] font-bold text-transparent select-none uppercase tracking-wider">&nbsp;</span>
-                  <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-                    value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
-                    <option value="semua">Semua Jenis</option>
-                    {ALL_JENIS.map((j) => <option key={j} value={j}>{j.replace(/_/g, " ")}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={filterJenis}
+                    onChange={setFilterJenis}
+                    borderClass="border border-slate-200"
+                    placeholder="Semua Jenis"
+                    options={[
+                      { value: "semua", label: "Semua Jenis" },
+                      ...ALL_JENIS.map((j) => ({ value: j, label: j.replace(/_/g, " ") }))
+                    ]}
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 lg:col-span-2">
@@ -134,9 +140,9 @@ export default function RekapKecPage() {
             </div>
           </div>
 
-          {/* Tabel */}
+          {/* Tabel (Desktop view) */}
           <div className="rounded-xl overflow-hidden bg-white border border-slate-200 shadow-sm">
-            <div className="-mx-4 sm:mx-0 overflow-x-auto">
+            <div className="hidden md:block -mx-4 sm:mx-0 overflow-x-auto">
               <table className="min-w-[900px] w-full border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
@@ -203,27 +209,150 @@ export default function RekapKecPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Cards (Mobile view) */}
+          <div className="block md:hidden space-y-4 p-4">
+            {isLoading ? (
+              <div className="p-10 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                <div className="animate-spin w-7 h-7 rounded-full border-4 border-amber-400 border-t-transparent mx-auto mb-2" />
+                Memuat data...
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="p-10 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">search_off</span>
+                Tidak ada data
+              </div>
+            ) : (
+              paginatedData.map((item: any) => {
+                const siaga = SIAGA_STYLE[item.status] ?? SIAGA_STYLE.siaga3;
+                const borderColors: Record<string, string> = {
+                  banjir: "border-l-blue-500",
+                  banjir_bandang: "border-l-blue-700",
+                  tanah_longsor: "border-l-orange-600",
+                  cuaca_ekstrim: "border-l-sky-500",
+                  kekeringan: "border-l-yellow-500",
+                  karhutla: "border-l-red-600",
+                  wabah: "border-l-purple-600",
+                  gempa_bumi: "border-l-slate-600",
+                  konflik_sosial: "border-l-pink-600",
+                };
+                return (
+                  <div
+                    key={`card-kec-${item.id}`}
+                    className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 ${borderColors[item.jenis_bencana] ?? "border-l-slate-400"}`}
+                  >
+                    {/* Top Header */}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${JENIS_DOT[item.jenis_bencana] ?? "bg-slate-400"}`} />
+                        <span className="font-bold text-slate-800 text-sm capitalize">
+                          {item.jenis_bencana?.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-bold uppercase leading-none ${siaga.cls}`}>
+                        {siaga.label}
+                      </span>
+                    </div>
+
+                    {/* Date & Time */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mb-4">
+                      <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                      <span>
+                        {item.waktu_kejadian ? new Date(item.waktu_kejadian).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                      </span>
+                    </div>
+
+                    {/* 2-Column Info (Lokasi & Pelapor) */}
+                    <div className="grid grid-cols-2 gap-2 border-b border-slate-100 pb-3 mb-3 text-center sm:text-left">
+                      <div className="min-w-0">
+                        <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 mb-0.5">
+                          <span className="material-symbols-outlined text-[13px]">location_on</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider">Lokasi</span>
+                        </div>
+                        <span className="font-bold text-slate-700 text-xs block truncate" title={item.lokasi_text ?? ""}>
+                          {item.lokasi_text ?? "-"}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 mb-0.5">
+                          <span className="material-symbols-outlined text-[13px]">person</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider">Pelapor</span>
+                        </div>
+                        <span className="font-bold text-slate-700 text-xs block truncate">
+                          {item.nama_pelapor ?? "-"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Victims pill boxes */}
+                    <div className="flex items-center justify-center gap-2 mb-4 bg-slate-50 py-2 rounded-xl border border-slate-100">
+                      <div className="bg-yellow-50 text-yellow-600 border border-yellow-200 rounded-lg px-3 py-1 flex flex-col items-center min-w-[56px]" title="Luka Ringan">
+                        <span className="text-[8px] font-bold uppercase">LR</span>
+                        <span className="font-mono font-bold text-xs">{item.korban_luka_ringan ?? 0}</span>
+                      </div>
+                      <div className="bg-orange-50 text-orange-600 border border-orange-200 rounded-lg px-3 py-1 flex flex-col items-center min-w-[56px]" title="Luka Berat">
+                        <span className="text-[8px] font-bold uppercase">LB</span>
+                        <span className="font-mono font-bold text-xs">{item.korban_luka_berat ?? 0}</span>
+                      </div>
+                      <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg px-3 py-1 flex flex-col items-center min-w-[56px]" title="Meninggal">
+                        <span className="text-[8px] font-bold uppercase">M</span>
+                        <span className="font-mono font-bold text-xs">{item.korban_meninggal ?? 0}</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom actions row */}
+                    <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
+                      <button
+                        onClick={() => navigate(`/detail/${item.id}`)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 px-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 active:scale-95 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">visibility</span>
+                        Detail
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
           {filtered.length > 0 && (
-              <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <p className="text-xs text-slate-500">
-                  Menampilkan <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri
-                </p>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  <span className="text-xs text-slate-500 font-semibold">Tampilkan:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                    className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
                   >
-                    <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-                  </button>
-                  <span className="text-[11px] font-bold text-slate-600">
-                    Hal {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                  >
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={250}>250</option>
+                  </select>
+                  <span className="text-xs text-slate-500 font-semibold">data</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Menampilkan <strong>{filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</strong> hingga <strong>{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong>{filtered.length}</strong> entri
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                </button>
+                <span className="text-[11px] font-bold text-slate-600">
+                  Hal {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
                     <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                   </button>
                 </div>

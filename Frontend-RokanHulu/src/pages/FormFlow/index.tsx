@@ -24,6 +24,7 @@ const JENIS_LABEL: Record<string, string> = {
 export default function FormFlow() {
   const navigate = useNavigate();
   const { step, jenis_bencana, resetForm } = useFormStore();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Cek apakah sudah memiliki form access token di sessionStorage
   const [accessGranted, setAccessGranted] = useState<boolean>(
@@ -42,7 +43,11 @@ export default function FormFlow() {
   }
 
   const handleCancel = () => {
-    // Hapus token saat user batal (keluar dari form)
+    setShowCancelConfirm(true);
+  };
+
+  const executeCancel = () => {
+    setShowCancelConfirm(false);
     sessionStorage.removeItem("sipena_form_access_token");
     resetForm();
     navigate("/");
@@ -60,22 +65,22 @@ export default function FormFlow() {
     >
       {/* TopNav */}
       <nav
-        style={{ background: "rgba(15,23,42,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-        className="fixed top-0 w-full z-50 shadow-xl flex justify-between items-center px-4 sm:px-6 py-3"
+        style={{ background: "rgba(28,31,43,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+        className="flex justify-between items-center px-6 h-20 w-full fixed top-0 z-50 shadow-xl"
       >
-        <div className="text-base sm:text-xl font-black text-white tracking-widest uppercase truncate">
-          SIPENA BPBD Rokan Hulu
+        <div className="flex items-center gap-3">
+          <img src="/logo_sipena.png" alt="Logo SIPENA" className="h-12 w-auto" />
+          <span className="text-2xl font-black text-white tracking-tighter">SiPENA</span>
         </div>
         <div className="hidden md:flex gap-8 items-center text-sm font-semibold">
-          <span className="text-amber-500 border-b-2 border-amber-500 pb-1">Laporan</span>
+          <span className="text-amber-500 border-b-2 border-amber-500 pb-1">Laporan Kejadian</span>
         </div>
-        <div className="flex items-center gap-4 text-slate-300">
+        <div>
           <button
             onClick={handleCancel}
-            className="flex items-center gap-1 hover:text-white transition-colors text-sm"
+            className="px-6 py-2 rounded-lg font-bold text-white transition-all active:scale-95 bg-red-600 hover:bg-red-700 shadow-md"
           >
-            <span className="material-symbols-outlined text-base">close</span>
-            <span className="hidden sm:inline">Batal</span>
+            Batalkan
           </button>
         </div>
       </nav>
@@ -107,6 +112,40 @@ export default function FormFlow() {
         {step === 3 && <Step3Korban />}
         {step === 4 && <Step4KerusakanFoto />}
       </main>
+
+      {/* Modal Konfirmasi Batal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+            <div className="h-2 bg-gradient-to-r from-amber-400 to-amber-500" />
+            <div className="p-6 sm:p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-6 border border-amber-100">
+                <span className="material-symbols-outlined text-amber-600 text-3xl">warning</span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Batalkan Laporan?</h3>
+              <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                Anda yakin ingin membatalkan laporan ini? Semua data yang telah Anda isi pada formulir ini akan dihapus secara permanen.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-600 text-sm transition-colors"
+                >
+                  Lanjutkan
+                </button>
+                <button
+                  type="button"
+                  onClick={executeCancel}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm shadow-md transition-colors"
+                >
+                  Ya, Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

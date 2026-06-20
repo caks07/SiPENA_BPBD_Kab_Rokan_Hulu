@@ -328,6 +328,13 @@ export default function DetailPage() {
     return foto.url ?? "";
   };
 
+  const isVideoFile = (foto: any) => {
+    if (foto.mime_type) return foto.mime_type.startsWith("video/");
+    const path = foto.file_path || "";
+    const ext = path.split('.').pop()?.toLowerCase();
+    return ["mp4", "webm", "ogg", "mov", "mkv", "3gp", "avi"].includes(ext);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedIndex === null) return;
@@ -515,16 +522,16 @@ export default function DetailPage() {
                     <span className="material-symbols-outlined text-red-500">groups</span>
                     <h3 className="text-base font-bold text-slate-800">Dampak Manusia</h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
                     {[
                       { label: "Meninggal",  value: korban?.korban_meninggal ?? 0,  cls: "text-red-600",  bg: "bg-red-50 border-red-100" },
                       { label: "Luka",       value: (korban?.korban_luka_ringan ?? 0) + (korban?.korban_luka_berat ?? 0), cls: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
                       { label: "Mengungsi",  value: korban?.jiwa_mengungsi ?? 0,    cls: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
                     ].map(({ label, value, cls, bg }) => (
-                      <div key={label} className={`${bg} border p-3 rounded-xl text-center`}>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">{label}</p>
-                        <p className={`text-2xl font-bold ${cls}`}>{value}</p>
-                        <p className={`text-[9px] font-bold ${cls}`}>JIWA</p>
+                      <div key={label} className={`${bg} border p-2 sm:p-3 rounded-xl text-center min-w-0 break-all text-ellipsis`}>
+                        <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase mb-1 truncate">{label}</p>
+                        <p className={`text-base sm:text-2xl font-black ${cls} truncate`}>{value}</p>
+                        <p className={`text-[8px] sm:text-[9px] font-bold ${cls}`}>JIWA</p>
                       </div>
                     ))}
                     {korban && (
@@ -575,13 +582,26 @@ export default function DetailPage() {
                 <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
                   <h3 className="text-base font-bold text-slate-800 mb-4">Dokumentasi Lapangan</h3>
                   <div className="grid grid-cols-3 gap-2">
-                    {laporan.fotos.map((foto: any, i: number) => (
-                      <img key={foto.id ?? i}
-                        src={getImageUrl(foto)}
-                        onClick={() => setSelectedIndex(i)}
-                        className="w-full h-28 object-cover rounded-lg border border-slate-100 cursor-pointer hover:opacity-90"
-                        alt={`Dokumentasi ${i + 1}`} />
-                    ))}
+                    {laporan.fotos.map((foto: any, i: number) => {
+                      const isVid = isVideoFile(foto);
+                      if (isVid) {
+                        return (
+                          <div key={foto.id ?? i} onClick={() => setSelectedIndex(i)} className="relative w-full h-28 rounded-lg border border-slate-100 cursor-pointer overflow-hidden group">
+                            <video src={getImageUrl(foto)} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-slate-950/45 flex items-center justify-center group-hover:bg-slate-950/20 transition-colors">
+                              <span className="material-symbols-outlined text-white text-3xl">play_circle</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <img key={foto.id ?? i}
+                          src={getImageUrl(foto)}
+                          onClick={() => setSelectedIndex(i)}
+                          className="w-full h-28 object-cover rounded-lg border border-slate-100 cursor-pointer hover:opacity-90 animate-fade-in"
+                          alt={`Dokumentasi ${i + 1}`} />
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -602,7 +622,7 @@ export default function DetailPage() {
                       {/* Layer switcher */}
                       <div className="absolute top-3 right-3 z-[400] flex overflow-hidden rounded-md border border-slate-200 shadow-sm">
                         {(["satellite", "osm"] as const).map(l => (
-                          <button key={l} type="button" onClick={() => setMapLayer(l)}
+                          <button key={`layer-${l}`} type="button" onClick={() => setMapLayer(l)}
                             className={`px-2 py-1 text-[10px] font-bold uppercase transition-colors ${
                               mapLayer === l ? "bg-[#F39200] text-white" : "bg-white text-slate-500 hover:bg-slate-50"
                             }`}>
@@ -612,7 +632,7 @@ export default function DetailPage() {
                       </div>
                       <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxZoom={mapLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false}>
                         <TileLayer
-                          key={mapLayer}
+                          key={`base-${mapLayer}`}
                           url={mapLayer === "satellite"
                             ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
@@ -624,7 +644,7 @@ export default function DetailPage() {
                         )}
                         {/* Batas wilayah kecamatan */}
                         {geojson && (
-                          <GeoJSON key={mapLayer} data={geojson as any} style={{
+                          <GeoJSON key={`geojson-${mapLayer}`} data={geojson as any} style={{
                             color: mapLayer === "satellite" ? "#FCD34D" : "#1E40AF",
                             weight: 2, opacity: 0.9,
                             fillColor: "transparent", fillOpacity: 0,
@@ -748,8 +768,8 @@ export default function DetailPage() {
                         {diffRows.length > 0 ? (
                           <>
                             <p className="text-sm text-slate-700 font-medium mb-1">Mengubah data laporan</p>
-                            <div className="mt-1 rounded-lg overflow-hidden border border-slate-200">
-                              <table className="w-full text-xs">
+                            <div className="mt-1 rounded-lg border border-slate-200 overflow-x-auto max-w-full">
+                              <table className="min-w-[400px] w-full text-xs">
                                 <thead>
                                   <tr className="bg-slate-100 text-slate-500">
                                     <th className="text-left px-2 py-1.5 font-bold uppercase tracking-wider w-1/3">Field</th>
@@ -851,10 +871,17 @@ export default function DetailPage() {
           )}
 
           <div className="relative max-w-5xl w-full flex flex-col items-center gap-4">
-             <img src={getImageUrl(laporan.fotos[selectedIndex])}
-                  className="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-                  alt={`Preview ${selectedIndex + 1}`}
-                  onClick={(e) => e.stopPropagation()} />
+             {isVideoFile(laporan.fotos[selectedIndex]) ? (
+               <video controls preload="metadata" className="max-h-[80vh] max-w-full rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                 <source src={getImageUrl(laporan.fotos[selectedIndex])} type={laporan.fotos[selectedIndex].mime_type} />
+                 Browser Anda tidak mendukung pemutar video.
+               </video>
+             ) : (
+               <img src={getImageUrl(laporan.fotos[selectedIndex])}
+                    className="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                    alt={laporan.fotos[selectedIndex].file_name || "Bukti laporan"}
+                    onClick={(e) => e.stopPropagation()} />
+             )}
              
              <div className="bg-black/50 px-4 py-2 rounded-full text-white font-mono text-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
                 {selectedIndex + 1} / {laporan.fotos.length}

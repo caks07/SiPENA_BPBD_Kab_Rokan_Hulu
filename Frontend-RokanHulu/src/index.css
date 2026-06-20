@@ -59,6 +59,8 @@
   --font-title-sm: "Inter";
   --font-data-tabular: "Inter";
   --font-body-sm: "Inter";
+
+  --breakpoint-3xl: 1920px;
 }
 
 .material-symbols-outlined {

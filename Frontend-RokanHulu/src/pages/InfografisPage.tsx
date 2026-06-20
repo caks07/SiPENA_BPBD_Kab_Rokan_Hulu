@@ -4,6 +4,7 @@ import * as htmlToImage from "html-to-image";
 import api from "../api/client";
 import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
+import CustomSelect from "../components/CustomSelect";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -184,7 +185,7 @@ export default function InfografisPage() {
          label: date.toLocaleString('id-ID', { month: 'short', year: 'numeric' }), 
          value: v as number 
        }; 
-    });
+     });
 
   const chartData = useMemo(() => ({
     labels: perBulan.map(d => d.label),
@@ -268,6 +269,9 @@ export default function InfografisPage() {
           box-shadow: none !important;
           text-shadow: none !important;
         }
+        .capture-mode .no-capture {
+          display: none !important;
+        }
         .capture-mode {
           width: 1200px !important;
           min-width: 1200px !important;
@@ -311,20 +315,32 @@ export default function InfografisPage() {
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kecamatan</label>
                 <div className="min-w-0">
                   <span className="block mb-1 text-[10px] font-bold text-transparent select-none uppercase tracking-wider">&nbsp;</span>
-                  <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" value={filterKec} onChange={e => setFilterKec(e.target.value)}>
-                    <option value="semua">Semua Kecamatan</option>
-                    {kecamatans.map((k:any) => <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={filterKec}
+                    onChange={setFilterKec}
+                    borderClass="border border-slate-200"
+                    placeholder="Semua Kecamatan"
+                    options={[
+                      { value: "semua", label: "Semua Kecamatan" },
+                      ...kecamatans.map((k: any) => ({ value: String(k.id), label: k.nama_kecamatan }))
+                    ]}
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis Bencana</label>
                 <div className="min-w-0">
                   <span className="block mb-1 text-[10px] font-bold text-transparent select-none uppercase tracking-wider">&nbsp;</span>
-                  <select className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" value={filterJenis} onChange={e => setFilterJenis(e.target.value)}>
-                    <option value="semua">Semua Bencana</option>
-                    {Object.entries(JENIS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={filterJenis}
+                    onChange={setFilterJenis}
+                    borderClass="border border-slate-200"
+                    placeholder="Semua Bencana"
+                    options={[
+                      { value: "semua", label: "Semua Bencana" },
+                      ...Object.entries(JENIS_LABEL).map(([k, v]) => ({ value: k, label: v }))
+                    ]}
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 lg:col-span-2">
@@ -413,20 +429,20 @@ export default function InfografisPage() {
             {/* SECTION 2: KPI UTAMA */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 kpi-grid">
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-amber-500">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Kejadian</p>
-                <p className="text-3xl sm:text-4xl font-black text-slate-800">{total}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Kejadian</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={String(total)}>{total}</p>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-blue-500">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Titik Terdampak</p>
-                <p className="text-3xl sm:text-4xl font-black text-slate-800">{byKec.length} <span className="text-sm text-slate-400">Kec</span></p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Titik Terdampak</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={`${byKec.length} Kecamatan`}>{byKec.length} <span className="text-xs sm:text-sm text-slate-400">Kec</span></p>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-red-500">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Korban</p>
-                <p className="text-3xl sm:text-4xl font-black text-slate-800">{totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Korban</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={String(totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi)}>{totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi}</p>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-emerald-500">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Dominan</p>
-                <p className="text-2xl sm:text-3xl font-black text-slate-800 break-words leading-tight mt-1">{statusDominan}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Dominan</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 break-words leading-tight mt-1">{statusDominan}</p>
               </div>
             </div>
 
@@ -491,35 +507,35 @@ export default function InfografisPage() {
                   </div>
                   
                   {/* Row 1 (Highlight Utama) */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3 korban-grid">
-                    <div className="bg-red-50/50 border border-red-100 p-3 rounded-lg text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-1">Meninggal</p>
-                      <p className="text-xl font-black text-red-600">{totalMeninggal}</p>
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-3 mb-3 korban-grid">
+                    <div className="bg-red-50/50 border border-red-100 p-3 rounded-lg text-center flex flex-col justify-center min-w-0">
+                      <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-1 truncate">Meninggal</p>
+                      <p className="text-sm xs:text-base sm:text-lg md:text-xl font-black text-red-600 truncate" title={String(totalMeninggal)}>{totalMeninggal}</p>
                     </div>
-                    <div className="bg-orange-50/50 border border-orange-100 p-3 rounded-lg text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mb-1 leading-tight">Luka Ringan</p>
-                      <p className="text-xl font-black text-orange-600">{totalLukaRingan}</p>
+                    <div className="bg-orange-50/50 border border-orange-100 p-3 rounded-lg text-center flex flex-col justify-center min-w-0">
+                      <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mb-1 leading-tight truncate">Luka Ringan</p>
+                      <p className="text-sm xs:text-base sm:text-lg md:text-xl font-black text-orange-600 truncate" title={String(totalLukaRingan)}>{totalLukaRingan}</p>
                     </div>
-                    <div className="bg-orange-50/50 border border-orange-100 p-3 rounded-lg text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mb-1 leading-tight">Luka Berat</p>
-                      <p className="text-xl font-black text-orange-600">{totalLukaBerat}</p>
+                    <div className="bg-orange-50/50 border border-orange-100 p-3 rounded-lg text-center flex flex-col justify-center min-w-0">
+                      <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mb-1 leading-tight truncate">Luka Berat</p>
+                      <p className="text-sm xs:text-base sm:text-lg md:text-xl font-black text-orange-600 truncate" title={String(totalLukaBerat)}>{totalLukaBerat}</p>
                     </div>
-                    <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-lg text-center flex flex-col justify-center">
-                      <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mb-1">Mengungsi</p>
-                      <p className="text-xl font-black text-blue-600">{totalMengungsi}</p>
+                    <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-lg text-center flex flex-col justify-center min-w-0">
+                      <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mb-1 truncate">Mengungsi</p>
+                      <p className="text-sm xs:text-base sm:text-lg md:text-xl font-black text-blue-600 truncate" title={String(totalMengungsi)}>{totalMengungsi}</p>
                     </div>
-                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center flex flex-col justify-center col-span-2 sm:col-span-1">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Hilang</p>
-                      <p className="text-xl font-black text-slate-700">{totalHilang}</p>
+                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-center flex flex-col justify-center min-w-0 col-span-2 xs:col-span-1">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 truncate">Hilang</p>
+                      <p className="text-sm xs:text-base sm:text-lg md:text-xl font-black text-slate-700 truncate" title={String(totalHilang)}>{totalHilang}</p>
                     </div>
                   </div>
 
                   {/* Row 2 (Detail Tambahan) */}
                   <div className="grid grid-cols-1 sm:grid-cols-1 gap-3">
-                    <div className="bg-blue-50/30 border border-blue-100 p-3 rounded-lg flex justify-center items-center gap-2">
+                    <div className="bg-blue-50/30 border border-blue-100 p-3 rounded-lg flex justify-center items-center gap-2 flex-wrap text-center">
                       <span className="material-symbols-outlined text-[18px] text-blue-400">family_restroom</span>
                       <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">KK Mengungsi:</p>
-                      <p className="text-lg font-black text-blue-700 ml-2">{totalKkMengungsi} <span className="text-xs font-bold text-blue-500">KK</span></p>
+                      <p className="text-sm sm:text-base md:text-lg font-black text-blue-700 ml-2">{totalKkMengungsi} <span className="text-xs font-bold text-blue-500">KK</span></p>
                     </div>
                   </div>
                 </div>
@@ -593,6 +609,26 @@ export default function InfografisPage() {
           </div>
         )}
       </main>
+
+      {/* Loading Overlay saat capture-mode berlangsung */}
+      {isCapturing && (
+        <div className="no-capture fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md text-white animate-in fade-in duration-200">
+          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6 relative">
+              <span className="material-symbols-outlined text-amber-500 text-3xl animate-pulse">photo_camera</span>
+              <div className="absolute inset-0 rounded-full border-2 border-amber-500/20 animate-ping opacity-75" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight mb-2">Memproses Screenshot</h3>
+            <p className="text-xs text-slate-400 leading-relaxed mb-6">
+              Sedang menyiapkan tata letak beresolusi tinggi untuk mengunduh gambar infografis...
+            </p>
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/30 px-4 py-2.5 rounded-full">
+              <div className="animate-spin w-3.5 h-3.5 rounded-full border-2 border-amber-400 border-t-transparent" />
+              <span>Mohon Tunggu Sebentar</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

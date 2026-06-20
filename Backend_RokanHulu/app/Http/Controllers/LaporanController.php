@@ -165,19 +165,36 @@ class LaporanController extends Controller
                 return response()->json(['error' => 'Koordinat lokasi kejadian wajib diisi.'], 422);
             }
 
-            // ── [4] Validasi foto (jenis & ukuran) ───────────────────────────────
+            // ── [4] Validasi file dokumentasi (media) ───────────────────────────
             if ($request->hasFile('fotos')) {
-                foreach ($request->file('fotos') as $foto) {
-                    $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-                    if (!in_array($foto->getMimeType(), $allowedMimes)) {
+                $uploadedFiles = $request->file('fotos');
+                if (count($uploadedFiles) > 5) {
+                    return response()->json([
+                        'error' => 'Maksimal 5 file bukti yang dapat diunggah.'
+                    ], 422);
+                }
+
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'mov', '3gp'];
+
+                foreach ($uploadedFiles as $foto) {
+                    $ext = strtolower($foto->getClientOriginalExtension());
+                    if (!in_array($ext, $allowedExtensions)) {
                         return response()->json([
-                            'error' => 'Format file foto tidak didukung. Gunakan JPG, PNG, atau WebP.',
+                            'error' => 'Format file ' . $foto->getClientOriginalName() . ' tidak didukung.'
                         ], 422);
                     }
-                    if ($foto->getSize() > 10 * 1024 * 1024) {
-                        return response()->json([
-                            'error' => 'Ukuran file foto melebihi batas 10 MB.',
-                        ], 422);
+
+                    if ($foto->getSize() > 100 * 1024 * 1024) {
+                        $mime = $foto->getMimeType();
+                        if (str_starts_with($mime, 'video/')) {
+                            return response()->json([
+                                'error' => 'Ukuran file ' . $foto->getClientOriginalName() . ' melebihi 100 MB atau durasi video terlalu panjang.'
+                            ], 422);
+                        } else {
+                            return response()->json([
+                                'error' => 'Ukuran file ' . $foto->getClientOriginalName() . ' melebihi 100 MB.'
+                            ], 422);
+                        }
                     }
                 }
             }
@@ -259,17 +276,12 @@ class LaporanController extends Controller
             if ($detailData && !empty($laporanData['jenis_bencana'])) {
                 $table = $this->getDetailTable($laporanData['jenis_bencana']);
                 if ($table) {
-                    try {
-                        $sanitized = $this->sanitizeDetailForPostgres($detailData);
-                        DB::table($table)->insert(array_merge($sanitized, [
-                            'laporan_id' => $laporanId,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]));
-                    } catch (\Exception $e) {
-                        // Jangan batalkan laporan utama — catat ke log
-                        Log::warning("Detail {$table} gagal: " . $e->getMessage(), ['data' => $detailData]);
-                    }
+                    $sanitized = $this->sanitizeDetailForPostgres($detailData);
+                    DB::table($table)->insert(array_merge($sanitized, [
+                        'laporan_id' => $laporanId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]));
                 }
             }
 
@@ -300,7 +312,12 @@ class LaporanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('store laporan error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['error' => $e->getMessage()], 500);
+            
+            $errorMessage = config('app.debug') 
+                ? $e->getMessage() 
+                : 'Gagal mengirim laporan. Silakan periksa kembali data Anda.';
+                
+            return response()->json(['error' => $errorMessage], 500);
         }
     }
 
@@ -406,19 +423,15 @@ class LaporanController extends Controller
                 $detailData = (array) $request->detail_bencana;
                 $table = $this->getDetailTable($laporan->jenis_bencana);
                 if ($table && !empty($detailData)) {
-                    try {
-                        $sanitized = $this->sanitizeDetailForPostgres($detailData);
-                        $exists = DB::table($table)->where('laporan_id', $id)->exists();
-                        if ($exists) {
-                            DB::table($table)->where('laporan_id', $id)
-                                ->update(array_merge($sanitized, ['updated_at' => now()]));
-                        } else {
-                            DB::table($table)->insert(array_merge(
-                                $sanitized, ['laporan_id' => $id, 'created_at' => now(), 'updated_at' => now()]
-                            ));
-                        }
-                    } catch (\Exception $e) {
-                        Log::warning("Detail update {$table} gagal: " . $e->getMessage());
+                    $sanitized = $this->sanitizeDetailForPostgres($detailData);
+                    $exists = DB::table($table)->where('laporan_id', $id)->exists();
+                    if ($exists) {
+                        DB::table($table)->where('laporan_id', $id)
+                            ->update(array_merge($sanitized, ['updated_at' => now()]));
+                    } else {
+                        DB::table($table)->insert(array_merge(
+                            $sanitized, ['laporan_id' => $id, 'created_at' => now(), 'updated_at' => now()]
+                        ));
                     }
                 }
             }
@@ -460,8 +473,13 @@ class LaporanController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('update laporan error: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('update laporan error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            
+            $errorMessage = config('app.debug') 
+                ? $e->getMessage() 
+                : 'Gagal memperbarui laporan. Silakan periksa kembali data Anda.';
+                
+            return response()->json(['error' => $errorMessage], 500);
         }
 
         return response()->json(['message' => 'Laporan updated']);
@@ -499,8 +517,13 @@ class LaporanController extends Controller
             return response()->json(['message' => 'Laporan berhasil dihapus']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('delete laporan error: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('delete laporan error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            
+            $errorMessage = config('app.debug') 
+                ? $e->getMessage() 
+                : 'Gagal menghapus laporan.';
+                
+            return response()->json(['error' => $errorMessage], 500);
         }
     }
 
@@ -534,12 +557,56 @@ class LaporanController extends Controller
      *
      * Field null / string kosong dibuang agar PostgreSQL pakai nilai DEFAULT.
      */
+    private function toPostgresIntArray($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $numbers = array_values(array_filter($value, function ($v) {
+            return $v !== null && $v !== '';
+        }));
+
+        if (empty($numbers)) {
+            return '{}';
+        }
+
+        $numbers = array_map(function ($v) {
+            return (int) $v;
+        }, $numbers);
+
+        return '{' . implode(',', $numbers) . '}';
+    }
+
     private function sanitizeDetailForPostgres(array $data): array
     {
+        $arrayFields = [
+            'penyebab_ids',
+            'material_terbawa_ids',
+            'kerusakan_infrastruktur_ids',
+            'material_ids',
+            'sektor_terdampak_ids',
+            'potensi_risiko_ids',
+            'upaya_masyarakat_ids',
+            'dampak_struktural_ids',
+            'kerusakan_jalan_ids',
+            'aparat_ids',
+        ];
+
+        foreach ($arrayFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $this->toPostgresIntArray($data[$field]);
+            }
+        }
+
         $result = [];
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                // Filter nilai kosong, ubah ke int, buat PostgreSQL int[] literal
+                // Fallback for arrays not defined in $arrayFields
                 $ints = array_map('intval', array_filter(
                     $value,
                     fn($v) => $v !== null && $v !== ''
@@ -548,7 +615,6 @@ class LaporanController extends Controller
             } elseif ($value !== null && $value !== '') {
                 $result[$key] = $value;
             }
-            // null & '' → tidak dimasukkan, PostgreSQL pakai DEFAULT
         }
         return $result;
     }

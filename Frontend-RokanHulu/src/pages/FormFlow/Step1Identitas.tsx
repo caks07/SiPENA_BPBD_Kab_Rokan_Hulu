@@ -7,6 +7,7 @@ import { useFormStore } from "../../state/useFormStore";
 import api from "../../api/client";
 import { point } from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import CustomSelect from "../../components/CustomSelect";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -116,11 +117,11 @@ const TimeInput = ({ value, dateVal, onChange }: { value: string; dateVal: strin
   const formatted = `${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
 
   return (
-    <div className="relative">
+    <div className="relative w-full sm:w-auto">
       <button
         type="button"
         onClick={() => setShowPicker(true)}
-        className="px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-mono font-bold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition-all"
+        className="px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-mono font-bold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition-all w-full sm:w-auto justify-center"
       >
         <span className="material-symbols-outlined text-[18px] text-slate-400">schedule</span>
         {formatted}
@@ -454,7 +455,7 @@ export default function Step1Identitas() {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-5 md:p-8 pb-28 max-w-3xl mx-auto">
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 pb-28 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <span className="bg-amber-500 text-white p-2 rounded-lg flex items-center justify-center">
           <span className="material-symbols-outlined">person_pin_circle</span>
@@ -479,12 +480,12 @@ export default function Step1Identitas() {
         {/* 2. Tanggal & Waktu Kejadian */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Tanggal &amp; Waktu Kejadian *</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               required
               type="date"
               max={getLocalDateString()}
-              className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none transition-all text-sm"
+              className="w-full sm:flex-1 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none transition-all text-sm h-[52px] sm:h-auto"
               value={laporan.waktu_kejadian ? laporan.waktu_kejadian.split(/[T ]/)[0] : ""}
               onChange={(e) => {
                 const selectedVal = e.target.value;
@@ -534,20 +535,13 @@ export default function Step1Identitas() {
               Gagal memuat kecamatan. Periksa koneksi server.
             </div>
           ) : (
-            <select
-              required
-              id="select-kecamatan"
-              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none transition-all text-sm"
+            <CustomSelect
               value={laporan.kecamatan_id || ""}
-              onChange={(e) => handleKecamatanChange(e.target.value)}
-            >
-              <option value="">-- Pilih Kecamatan ({kecamatans.length} tersedia) --</option>
-              {kecamatans.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.nama_kecamatan}
-                </option>
-              ))}
-            </select>
+              onChange={handleKecamatanChange}
+              borderClass="border-2 border-slate-200"
+              placeholder="-- Pilih Kecamatan --"
+              options={kecamatans.map((k: any) => ({ value: String(k.id), label: k.nama_kecamatan }))}
+            />
           )}
         </div>
 
@@ -590,7 +584,7 @@ export default function Step1Identitas() {
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Pin Lokasi di Peta *</label>
             <div style={{ display: "flex", overflow: "hidden", borderRadius: 6, border: "1px solid #e2e8f0" }}>
               {(["satellite", "osm"] as const).map((layer) => (
-                <button key={layer} type="button" onClick={() => setActiveLayer(layer)}
+                <button key={`layer-step1-${layer}`} type="button" onClick={() => setActiveLayer(layer)}
                   style={{
                     padding: "4px 10px", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer",
                     background: activeLayer === layer ? "#F39200" : "white",
@@ -605,7 +599,7 @@ export default function Step1Identitas() {
           <div className="rounded-xl overflow-hidden border-2 border-slate-300 shadow-md h-72 md:h-96">
             <MapContainer center={position ?? [0.78, 100.42]} zoom={9} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full">
               <TileLayer
-                key={`base-${activeLayer}`}
+                key={`base-step1-${activeLayer}`}
                 url={activeLayer === "satellite"
                   ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                   : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
@@ -613,11 +607,11 @@ export default function Step1Identitas() {
                 maxZoom={activeLayer === "satellite" ? 17 : 19}
               />
               {activeLayer === "satellite" && (
-                <TileLayer key="labels-satellite" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
+                <TileLayer key="labels-satellite-step1" url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" attribution="" pane="shadowPane" />
               )}
               {geojson && (geojson.features?.length ?? 0) > 0 && (
                 <GeoJSON
-                  key={`boundary-${activeLayer}-${geojson.features.length}`}
+                  key={`boundary-step1-${activeLayer}-${geojson.features.length}`}
                   data={geojson as any}
                   style={{
                     color: activeLayer === "satellite" ? "#FACC15" : "#1E40AF",
@@ -685,8 +679,8 @@ export default function Step1Identitas() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
-          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 1/4</div>
+        <div className="mt-8 flex justify-between items-center p-2 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap"><span className="hidden xs:inline">Langkah </span>1/4</div>
           <button
             type="submit"
             className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"

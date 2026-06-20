@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormStore } from "../../state/useFormStore";
 import api from "../../api/client";
@@ -68,6 +68,42 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** Modal loading saat proses pengiriman laporan */
+function SubmittingModal() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(8px)" }}>
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-[fadeIn_0.3s_ease]">
+        {/* Top accent bar */}
+        <div className="h-2 bg-gradient-to-r from-amber-400 to-amber-500 animate-[loading_1.5s_infinite_linear]" />
+        <div className="p-8 flex flex-col items-center text-center">
+          {/* Circular Spinner */}
+          <div className="w-24 h-24 rounded-full bg-amber-50 flex items-center justify-center mb-6 relative">
+            <div className="animate-spin w-10 h-10 rounded-full border-4 border-amber-500 border-t-transparent" />
+          </div>
+
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Mengirim Laporan...</h2>
+          <p className="text-slate-500 text-sm">
+            Harap tunggu sebentar, data laporan dan media bukti sedang diunggah ke server.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const MAX_MEDIA_FILES = 5;
+const MAX_MEDIA_SIZE_MB = 100;
+const MAX_MEDIA_SIZE_BYTES = MAX_MEDIA_SIZE_MB * 1024 * 1024;
+
+const ACCEPTED_MEDIA_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "video/mp4",
+  "video/quicktime",
+  "video/3gpp",
+];
+
 export default function Step4KerusakanFoto() {
   const navigate = useNavigate();
   const { laporan, detail, korban, kerusakan, setKerusakan, fotos, setFotos, prevStep, jenis_bencana, resetForm } = useFormStore();
@@ -77,6 +113,13 @@ export default function Step4KerusakanFoto() {
   const [logistikIds, setLogistikIds] = useState<number[]>([]);
   const [fotoPreviews, setFotoPreviews] = useState<string[]>([]);
 
+  // Cleanup object URLs on unmount to prevent leaks
+  useEffect(() => {
+    return () => {
+      fotoPreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   const toggle = (list: number[], setList: (v: number[]) => void, id: number) => {
     setList(list.includes(id) ? list.filter(i => i !== id) : [...list, id]);
   };
@@ -84,23 +127,34 @@ export default function Step4KerusakanFoto() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
-    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-    const invalid = newFiles.find(f => !ALLOWED_TYPES.includes(f.type));
-    if (invalid) {
-      alert(`Format file "${invalid.name}" tidak didukung. Gunakan JPG, PNG, atau WebP.`);
-      return;
-    }
-    const tooLarge = newFiles.find(f => f.size > MAX_SIZE);
-    if (tooLarge) {
-      alert(`Gagal upload karena file "${tooLarge.name}" lebih besar dari batas 10 MB.`);
+    if (newFiles.length + fotos.length > MAX_MEDIA_FILES) {
+      alert("Maksimal 5 file bukti yang dapat diunggah.");
       return;
     }
 
-    const combined = [...fotos, ...newFiles].slice(0, 5);
-    setFotos(combined);
-    setFotoPreviews(combined.map(f => URL.createObjectURL(f)));
+    const accepted: File[] = [];
+    for (const file of newFiles) {
+      if (!ACCEPTED_MEDIA_TYPES.includes(file.type)) {
+        alert(`Format file ${file.name} tidak didukung. Harap gunakan JPG, JPEG, PNG, MP4, MOV, atau 3GP.`);
+        return;
+      }
+      if (file.size > MAX_MEDIA_SIZE_BYTES) {
+        if (file.type.startsWith("video/")) {
+          alert(`Ukuran file ${file.name} melebihi 100 MB atau durasi video terlalu panjang.`);
+        } else {
+          alert(`Ukuran file ${file.name} melebihi 100 MB.`);
+        }
+        return;
+      }
+      accepted.push(file);
+    }
+
+    if (accepted.length > 0) {
+      const combined = [...fotos, ...accepted].slice(0, 5);
+      setFotos(combined);
+      setFotoPreviews(combined.map(f => URL.createObjectURL(f)));
+    }
   };
 
   const removeFile = (index: number) => {
@@ -120,6 +174,8 @@ export default function Step4KerusakanFoto() {
         if (!defaultNumericKeys.includes(k)) {
           cleaned[k] = null;
         }
+      } else if (Array.isArray(v)) {
+        cleaned[k] = v;
       } else if (!isNaN(Number(v))) {
         cleaned[k] = Number(v);
       } else {
@@ -137,7 +193,6 @@ export default function Step4KerusakanFoto() {
     const formToken = sessionStorage.getItem('sipena_form_access_token');
     if (!formToken) {
       alert('Sesi akses form telah berakhir. Muat ulang halaman dan masukkan password kembali.');
-      // Reset state agar gate muncul lagi
       sessionStorage.removeItem('sipena_form_access_token');
       window.location.reload();
       return;
@@ -161,17 +216,13 @@ export default function Step4KerusakanFoto() {
         },
       });
 
-      // Hapus token setelah laporan sukses tersimpan
       sessionStorage.removeItem('sipena_form_access_token');
-
-      // Tampilkan modal sukses
       setShowSuccess(true);
     } catch (err: any) {
       const status = err.response?.status;
       const errMsg = err.response?.data?.error ?? err.message;
 
       if (status === 401) {
-        // Token tidak valid atau expired
         sessionStorage.removeItem('sipena_form_access_token');
         alert('Sesi akses form tidak valid atau sudah kedaluwarsa. Silakan masukkan password kembali.');
         window.location.reload();
@@ -180,7 +231,6 @@ export default function Step4KerusakanFoto() {
 
       alert("❌ Gagal mengirim laporan: " + errMsg);
       console.error("Submit error:", err.response?.data ?? err);
-      // Token TIDAK dihapus di sini — user bisa retry tanpa re-enter password
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +238,7 @@ export default function Step4KerusakanFoto() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    sessionStorage.removeItem('sipena_form_access_token'); // pastikan bersih
+    sessionStorage.removeItem('sipena_form_access_token');
     resetForm();
     navigate("/");
   };
@@ -198,8 +248,11 @@ export default function Step4KerusakanFoto() {
       {/* Success Modal */}
       {showSuccess && <SuccessModal onClose={handleSuccessClose} />}
 
+      {/* Submitting Modal */}
+      {isSubmitting && <SubmittingModal />}
+
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6">
+      <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-4 sm:p-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-bold mb-3">
           <span className="material-symbols-outlined text-sm">report_problem</span> LANGKAH 4: KERUSAKAN &amp; DOKUMENTASI
         </div>
@@ -211,7 +264,7 @@ export default function Step4KerusakanFoto() {
         {/* Rumah */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
           <div className="h-1.5 bg-amber-500 w-full" />
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex items-center gap-3 border-b border-slate-200 pb-4 mb-6">
               <span className="material-symbols-outlined text-amber-600">home_work</span>
               <h2 className="text-lg font-bold text-slate-800">Kerusakan Rumah</h2>
@@ -225,7 +278,8 @@ export default function Step4KerusakanFoto() {
                     value={kerusakan[name] !== undefined && kerusakan[name] !== null && kerusakan[name] !== "" ? kerusakan[name] : "0"}
                     onChange={e => {
                       const val = e.target.value.replace(/[^0-9]/g, '');
-                      const cleanVal = val === "" ? "0" : val.replace(/^0+(?=\d)/, '');
+                      const slicedVal = val.slice(0, 9);
+                      const cleanVal = slicedVal === "" ? "0" : slicedVal.replace(/^0+(?=\d)/, '');
                       setKerusakan({ [name]: cleanVal });
                     }}
                     onKeyDown={(e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
@@ -237,7 +291,7 @@ export default function Step4KerusakanFoto() {
         </section>
 
         {/* Fasilitas Umum */}
-        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-4">
+        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 mb-4">
           <div className="flex flex-col mb-4">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-600">account_balance</span>
@@ -266,7 +320,7 @@ export default function Step4KerusakanFoto() {
         </section>
 
         {/* Logistik */}
-        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-4">
+        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 mb-4">
           <div className="flex flex-col mb-4">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-600">inventory_2</span>
@@ -294,12 +348,12 @@ export default function Step4KerusakanFoto() {
           )}
         </section>
 
-        {/* Upload Foto */}
-        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-4">
+        {/* Upload Foto & Video */}
+        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-600">photo_camera</span>
-              <h2 className="text-lg font-bold text-slate-800">Foto Dokumentasi *</h2>
+              <h2 className="text-lg font-bold text-slate-800">Dokumentasi Media *</h2>
             </div>
             <span className="text-xs font-bold text-slate-500">MAKS. 5 FILE</span>
           </div>
@@ -310,22 +364,37 @@ export default function Step4KerusakanFoto() {
             </div>
             <div className="text-center">
               <p className="font-semibold text-slate-700">Klik untuk unggah atau seret file</p>
-              <p className="text-sm text-slate-500 mt-1">PNG, JPG atau WEBP (Maks. 10MB per file)</p>
+              <p className="text-sm text-slate-500 mt-1">
+                Unggah maksimal 5 file bukti dalam bentuk foto atau video. Setiap file maksimal 100 MB. Format yang didukung: JPG, JPEG, PNG, MP4, MOV, atau 3GP.
+              </p>
             </div>
-            <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
+            <input
+              type="file"
+              className="hidden"
+              multiple
+              accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+              onChange={handleFileChange}
+            />
           </label>
 
           {fotoPreviews.length > 0 && (
             <div className="grid grid-cols-5 gap-3 mt-4">
-              {fotoPreviews.map((url, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => removeFile(i)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
-                </div>
-              ))}
+              {fotoPreviews.map((url, i) => {
+                const isVideo = fotos[i]?.type.startsWith("video/");
+                return (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group">
+                    {isVideo ? (
+                      <video src={url} controls className="w-full h-full object-cover animate-fade-in" />
+                    ) : (
+                      <img src={url} alt="" className="w-full h-full object-cover animate-fade-in" />
+                    )}
+                    <button type="button" onClick={() => removeFile(i)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <span className="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                  </div>
+                );
+              })}
               {Array.from({ length: Math.max(0, 5 - fotoPreviews.length) }).map((_, i) => (
                 <div key={`empty-${i}`} className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center">
                   <span className="material-symbols-outlined text-slate-400">add</span>
@@ -336,7 +405,7 @@ export default function Step4KerusakanFoto() {
         </section>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+        <div className="mt-8 flex justify-between items-center p-2 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={prevStep}
@@ -346,7 +415,7 @@ export default function Step4KerusakanFoto() {
             <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
             <span>Kembali</span>
           </button>
-          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 4/4</div>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap"><span className="hidden xs:inline">Langkah </span>4/4</div>
           <button
             type="submit"
             disabled={isSubmitting}

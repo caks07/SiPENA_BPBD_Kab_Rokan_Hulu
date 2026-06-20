@@ -28,7 +28,8 @@ export default function Step3Korban() {
           value={korban[f.name] !== undefined && korban[f.name] !== null && korban[f.name] !== "" ? korban[f.name] : "0"}
           onChange={e => {
             const val = e.target.value.replace(/[^0-9]/g, '');
-            const cleanVal = val === "" ? "0" : val.replace(/^0+(?=\d)/, '');
+            const slicedVal = val.slice(0, 9);
+            const cleanVal = slicedVal === "" ? "0" : slicedVal.replace(/^0+(?=\d)/, '');
             setKorban({ [f.name]: cleanVal });
           }}
           onKeyDown={(e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }}
@@ -40,7 +41,7 @@ export default function Step3Korban() {
 
   return (
     // pb-28 agar konten terakhir tidak tertutup footer fixed
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-6 md:p-8">
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
       <div className="flex items-center gap-3 mb-2">
         <span className="bg-amber-500 text-white p-2 rounded-lg">
           <span className="material-symbols-outlined">group</span>
@@ -90,7 +91,7 @@ export default function Step3Korban() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="mt-8 flex justify-between items-center p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
+        <div className="mt-8 flex justify-between items-center p-2 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={prevStep}
@@ -99,7 +100,7 @@ export default function Step3Korban() {
             <span className="material-symbols-outlined text-sm sm:text-base">arrow_back</span>
             <span>Kembali</span>
           </button>
-          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap">Langkah 3/4</div>
+          <div className="text-slate-400 font-bold uppercase text-[10px] sm:text-sm whitespace-nowrap"><span className="hidden xs:inline">Langkah </span>3/4</div>
           <button
             type="submit"
             className="flex items-center gap-1 sm:gap-2 bg-amber-500 text-white rounded-xl px-3.5 sm:px-6 py-2 sm:py-3 active:scale-95 transition-transform shadow-md text-[10px] sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap"
