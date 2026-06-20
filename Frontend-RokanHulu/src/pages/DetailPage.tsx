@@ -630,7 +630,7 @@ export default function DetailPage() {
                           </button>
                         ))}
                       </div>
-                      <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxZoom={mapLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false}>
+                      <MapContainer center={[lat, lng]} zoom={13} minZoom={5} maxZoom={mapLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" zoomControl={false} attributionControl={false}>
                         <TileLayer
                           key={`base-${mapLayer}`}
                           url={mapLayer === "satellite"

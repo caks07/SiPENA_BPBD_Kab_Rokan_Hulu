@@ -597,7 +597,7 @@ export default function Step1Identitas() {
             </div>
           </div>
           <div className="rounded-xl overflow-hidden border-2 border-slate-300 shadow-md h-72 md:h-96">
-            <MapContainer center={position ?? [0.78, 100.42]} zoom={9} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full">
+            <MapContainer center={position ?? [0.78, 100.42]} zoom={9} minZoom={5} maxZoom={activeLayer === "satellite" ? 17 : 19} maxBounds={[[6.0, 95.0], [-6.0, 109.0]]} className="w-full h-full" attributionControl={false}>
               <TileLayer
                 key={`base-step1-${activeLayer}`}
                 url={activeLayer === "satellite"

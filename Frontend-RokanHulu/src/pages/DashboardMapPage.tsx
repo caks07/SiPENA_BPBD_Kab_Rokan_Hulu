@@ -206,6 +206,7 @@ export default function DashboardMapPage() {
           maxZoom={activeLayer === "satellite" ? 17 : 19}
           maxBounds={[[6.0, 95.0], [-6.0, 109.0]]}
           zoomControl={false}
+          attributionControl={false}
           style={{ width: "100%", height: "100%" }}
           scrollWheelZoom
         >
