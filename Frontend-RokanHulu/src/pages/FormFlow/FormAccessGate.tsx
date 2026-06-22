@@ -48,10 +48,13 @@ export default function FormAccessGate({ onSuccess, backTo = "/" }: Props) {
       sessionStorage.setItem("sipena_form_access_token", token);
       onSuccess();
     } catch (err: any) {
-      const msg =
+      let msg =
         err?.response?.data?.error ??
         err?.response?.data?.message ??
         "Terjadi kesalahan. Coba lagi.";
+      if (err?.response?.status === 401) {
+        msg = "Password salah atau tidak sesuai. Silakan hubungi admin kabupaten.";
+      }
       setError(msg);
       setPassword("");
       // Cooldown 3 detik setelah gagal (UI throttle)

@@ -548,12 +548,12 @@ export default function AdministratorPage() {
                   key={`user-card-${u.id}`}
                   className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm break-all">{u.name}</h4>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5 break-all">{u.username}</p>
+                  <div className="flex justify-between items-start gap-4 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-slate-800 text-sm truncate" title={u.name}>{u.name}</h4>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5 truncate" title={u.username}>{u.username}</p>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${u.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase flex-shrink-0 ${u.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"}`}>
                       {u.is_active ? "Aktif" : "Nonaktif"}
                     </span>
                   </div>

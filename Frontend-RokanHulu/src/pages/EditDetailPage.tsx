@@ -350,11 +350,114 @@ const getLocalDateString = () => {
   return `${year}-${month}-${date}`;
 };
 
+const FIELD_LABELS: Record<string, string> = {
+  nama_pelapor: "Nama Pelapor",
+  lokasi_text: "Detail Lokasi / Alamat",
+  kecamatan_id: "Kecamatan",
+  waktu_kejadian: "Waktu Kejadian",
+  koordinat: "Koordinat GPS",
+  korban_luka_ringan: "Korban Luka Ringan",
+  korban_luka_berat: "Korban Luka Berat",
+  korban_meninggal: "Korban Meninggal Dunia",
+  korban_hilang: "Korban Hilang",
+  kk_mengungsi: "KK Terdampak",
+  jiwa_mengungsi: "Jiwa Mengungsi",
+  rumah_rusak_berat: "Rumah Rusak Berat",
+  rumah_rusak_sedang: "Rumah Rusak Sedang",
+  rumah_rusak_ringan: "Rumah Rusak Ringan",
+  fasilitas_terdampak: "Fasilitas Umum Terdampak",
+  kebutuhan_logistik: "Kebutuhan Logistik Mendesak",
+};
+
 export default function EditDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [deletedFotoIds, setDeletedFotoIds] = useState<number[]>([]);
+  const [newFotos, setNewFotos] = useState<File[]>([]);
+  const [newFotoPreviews, setNewFotoPreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      newFotoPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [newFotoPreviews]);
+
+  const getImageUrl = (foto: any) => {
+    if (foto.file_path) {
+      return foto.file_path.startsWith("/") ? foto.file_path : `/${foto.file_path}`;
+    }
+    return foto.url ?? "";
+  };
+
+  const isVideoFile = (foto: any) => {
+    if (foto.mime_type) return foto.mime_type.startsWith("video/");
+    const path = foto.file_path || "";
+    const ext = path.split('.').pop()?.toLowerCase();
+    return ["mp4", "webm", "ogg", "mov", "mkv", "3gp", "avi"].includes(ext);
+  };
+
+  const MAX_MEDIA_FILES = 5;
+  const MAX_MEDIA_SIZE_MB = 100;
+  const MAX_MEDIA_SIZE_BYTES = MAX_MEDIA_SIZE_MB * 1024 * 1024;
+  const ACCEPTED_MEDIA_TYPES = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "video/mp4",
+    "video/quicktime",
+    "video/3gpp",
+  ];
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+
+    const existingFotosCount = (laporan?.fotos?.length ?? 0) - deletedFotoIds.length;
+    if (files.length + existingFotosCount + newFotos.length > MAX_MEDIA_FILES) {
+      alert(`Maksimal ${MAX_MEDIA_FILES} file bukti yang dapat disimpan.`);
+      return;
+    }
+
+    const accepted: File[] = [];
+    for (const file of files) {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? "";
+      const isAcceptedType = ACCEPTED_MEDIA_TYPES.includes(file.type) || ["jpg", "jpeg", "png", "mp4", "mov", "3gp"].includes(ext);
+      if (!isAcceptedType) {
+        alert(`Format file ${file.name} tidak didukung. Harap gunakan JPG, JPEG, PNG, MP4, MOV, atau 3GP.`);
+        return;
+      }
+      if (file.size > MAX_MEDIA_SIZE_BYTES) {
+        alert(`Ukuran file ${file.name} melebihi 100 MB.`);
+        return;
+      }
+      accepted.push(file);
+    }
+
+    if (accepted.length > 0) {
+      const combined = [...newFotos, ...accepted];
+      setNewFotos(combined);
+      setNewFotoPreviews(combined.map(f => URL.createObjectURL(f)));
+    }
+  };
+
+  const removeNewFile = (index: number) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus media ini?")) {
+      const combined = newFotos.filter((_, i) => i !== index);
+      setNewFotos(combined);
+      setNewFotoPreviews(combined.map(f => URL.createObjectURL(f)));
+    }
+  };
+
+  const removeExistingFile = (fotoId: number) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus media ini?")) {
+      setDeletedFotoIds(prev => [...prev, fotoId]);
+    }
+  };
+
+  const [changesList, setChangesList] = useState<{ label: string; oldVal: string; newVal: string }[]>([]);
 
   /* ── Fetch current data ─────────────── */
   const { data: laporan, isLoading } = useQuery({
@@ -477,7 +580,43 @@ export default function EditDetailPage() {
     setStep1(prev => ({ ...prev, latitude: String(lat.toFixed(6)), longitude: String(lng.toFixed(6)) }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const formatDiffValue = (key: string, val: any) => {
+    if (val === null || val === undefined || val === "") return "-";
+    if (key === "kecamatan_id") {
+      const kec = kecamatans.find((k: any) => String(k.id) === String(val));
+      return kec ? kec.nama_kecamatan : String(val);
+    }
+
+    // Parse Postgres array string representation (e.g. "{1}" or "{1,2}")
+    let parsedVal = val;
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+        const inner = trimmed.slice(1, -1).trim();
+        parsedVal = inner ? inner.split(",").map(s => Number(s.trim())) : [];
+      }
+    }
+
+    const field = step2Fields.find(f => f.name === key);
+    if (field?.optKey && options) {
+      const list: any[] = options[field.optKey] ?? [];
+      if (Array.isArray(parsedVal)) {
+        return parsedVal.map((id: any) => {
+          const opt = list.find((o: any) => String(o.id) === String(id));
+          return opt ? opt.label : String(id);
+        }).join(", ");
+      }
+      const opt = list.find((o: any) => String(o.id) === String(parsedVal));
+      return opt ? opt.label : String(parsedVal);
+    }
+
+    if (Array.isArray(parsedVal)) {
+      return parsedVal.join(", ");
+    }
+    return String(parsedVal);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (step1.waktu_kejadian) {
@@ -523,9 +662,92 @@ export default function EditDetailPage() {
       }
     }
 
-    setSaving(true);
+    // Generate diff list
+    const diffs: { label: string; oldVal: string; newVal: string }[] = [];
+
+    const addDiff = (key: string, oldV: any, newV: any) => {
+      const vOld = Array.isArray(oldV) ? oldV.sort().join(",") : String(oldV ?? "");
+      const vNew = Array.isArray(newV) ? newV.sort().join(",") : String(newV ?? "");
+      
+      if (vOld !== vNew && !(vOld === "" && vNew === "")) {
+        const label = FIELD_LABELS[key] || step2Fields.find(f => f.name === key)?.label || key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+        diffs.push({
+          label,
+          oldVal: formatDiffValue(key, oldV),
+          newVal: formatDiffValue(key, newV)
+        });
+      }
+    };
+
+    addDiff("nama_pelapor", laporan.nama_pelapor, step1.nama_pelapor);
+    addDiff("lokasi_text", laporan.lokasi_text, step1.lokasi_text);
+    addDiff("kecamatan_id", laporan.kecamatan_id, Number(step1.kecamatan_id));
+
+    const normalizeDateTime = (dtStr: string) => {
+      if (!dtStr) return "";
+      return dtStr.replace(" ", "T").slice(0, 16);
+    };
+    addDiff("waktu_kejadian", normalizeDateTime(laporan.waktu_kejadian), normalizeDateTime(step1.waktu_kejadian));
+
+    const reqLat = position?.[0] ?? Number(step1.latitude);
+    const reqLng = position?.[1] ?? Number(step1.longitude);
+    if (reqLat !== Number(laporan.latitude) || reqLng !== Number(laporan.longitude)) {
+      diffs.push({
+        label: "Koordinat GPS",
+        oldVal: `${Number(laporan.latitude).toFixed(5)}, ${Number(laporan.longitude).toFixed(5)}`,
+        newVal: `${reqLat.toFixed(5)}, ${reqLng.toFixed(5)}`
+      });
+    }
+
+    Object.keys(korban).forEach(k => {
+      addDiff(k, laporan.korban?.[k] ?? 0, korban[k]);
+    });
+
+    Object.keys(kerusakan).forEach(k => {
+      const curr = laporan.kerusakan?.[k] ?? (typeof kerusakan[k] === 'string' ? "" : 0);
+      addDiff(k, curr, kerusakan[k]);
+    });
+
+    Object.keys(detailData).forEach(k => {
+      addDiff(k, laporan.detail?.[k], detailData[k]);
+    });
+
+    const oldFLabels = laporan.fasilitas_terdampak || [];
+    const newFLabels = fasilitas.map(id => FASILITAS_UMUM.find(f => f.id === id)?.label).filter(Boolean);
+    addDiff("fasilitas_terdampak", oldFLabels, newFLabels);
     
-    // Generate diff
+    const oldLLabels = laporan.kebutuhan_logistik || [];
+    const newLLabels = logistik.map(id => LOGISTIK.find(x => x.id === id)?.label).filter(Boolean);
+    addDiff("kebutuhan_logistik", oldLLabels, newLLabels);
+
+    if (deletedFotoIds.length > 0) {
+      diffs.push({
+        label: "Media Dihapus",
+        oldVal: `${deletedFotoIds.length} file`,
+        newVal: `Dihapus dari laporan`
+      });
+    }
+    if (newFotos.length > 0) {
+      diffs.push({
+        label: "Media Baru Ditambahkan",
+        oldVal: "-",
+        newVal: `${newFotos.length} file baru`
+      });
+    }
+
+    if (diffs.length === 0) {
+      alert("Tidak ada data yang diubah.");
+      return;
+    }
+
+    setChangesList(diffs);
+    setShowConfirmModal(true);
+  };
+
+  const executeSave = async () => {
+    setShowConfirmModal(false);
+    setSaving(true);
+
     const changed: string[] = [];
     const oldVal: Record<string, any> = {};
     const newVal: Record<string, any> = {};
@@ -564,7 +786,6 @@ export default function EditDetailPage() {
     });
 
     Object.keys(kerusakan).forEach(k => {
-      // untuk field numeric default ke 0
       const curr = laporan.kerusakan?.[k] ?? (typeof kerusakan[k] === 'string' ? "" : 0);
       addDiff(k, curr, kerusakan[k]);
     });
@@ -581,6 +802,12 @@ export default function EditDetailPage() {
     const newLLabels = logistik.map(id => LOGISTIK.find(x => x.id === id)?.label).filter(Boolean);
     addDiff("kebutuhan_logistik", oldLLabels, newLLabels);
 
+    if (deletedFotoIds.length > 0 || newFotos.length > 0) {
+      changed.push("media");
+      oldVal.media = `${(laporan.fotos || []).length} file`;
+      newVal.media = `${(laporan.fotos || []).length - deletedFotoIds.length + newFotos.length} file`;
+    }
+
     const audit_log = changed.length > 0 ? {
       action_type: "update",
       field_changed: changed,
@@ -590,24 +817,32 @@ export default function EditDetailPage() {
     } : null;
 
     try {
-      const payload: any = {
-        ...step1,
-        kecamatan_id: Number(step1.kecamatan_id),
-        latitude: reqLat,
-        longitude: reqLng,
-        korban,
-        kerusakan,
-        detail_bencana: detailData,
-        fasilitas_terdampak: fasilitas,
-        kebutuhan_logistik: logistik,
-        catatan_update: "Update detail laporan dari Editor"
-      };
+      const fd = new FormData();
+      fd.append("_method", "PUT");
+      fd.append("nama_pelapor", step1.nama_pelapor);
+      fd.append("waktu_kejadian", step1.waktu_kejadian);
+      fd.append("kecamatan_id", String(step1.kecamatan_id));
+      fd.append("lokasi_text", step1.lokasi_text);
+      fd.append("latitude", String(reqLat));
+      fd.append("longitude", String(reqLng));
+      fd.append("korban", JSON.stringify(korban));
+      fd.append("kerusakan", JSON.stringify(kerusakan));
+      fd.append("detail_bencana", JSON.stringify(detailData));
+      fd.append("fasilitas_terdampak", JSON.stringify(fasilitas));
+      fd.append("kebutuhan_logistik", JSON.stringify(logistik));
+      fd.append("deleted_foto_ids", JSON.stringify(deletedFotoIds));
+      
+      newFotos.forEach(f => fd.append("fotos[]", f));
 
       if (audit_log) {
-        payload.audit_log = audit_log;
+        fd.append("audit_log", JSON.stringify(audit_log));
       }
 
-      await api.put(`/laporan/${id}`, payload);
+      await api.post(`/laporan/${id}`, fd, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setSaved(true);
       setTimeout(() => navigate(`/detail/${id}`), 2000);
     } catch (error) {
@@ -988,6 +1223,113 @@ export default function EditDetailPage() {
               </div>
             </div>
 
+            {/* ── STEP 5: Edit Media (Dokumentasi) ── */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="h-1 bg-violet-500" />
+              <div className="p-6">
+                <SectionHeader icon="photo_camera" title="Dokumentasi Media Laporan" />
+                
+                {/* Media yang sudah diupload sebelumnya */}
+                <div className="mb-6">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Media Sebelumnya / Tim TRS</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                    {(laporan?.fotos || [])
+                      .filter((f: any) => !deletedFotoIds.includes(f.id))
+                      .map((foto: any, idx: number) => {
+                        const isVid = isVideoFile(foto);
+                        const uploadDate = foto.created_at ? new Date(foto.created_at).toLocaleDateString("id-ID") : "-";
+                        return (
+                          <div key={foto.id || idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-50 flex flex-col justify-between">
+                            <div className="relative flex-1 overflow-hidden">
+                              {isVid ? (
+                                <video src={getImageUrl(foto)} className="w-full h-full object-cover" />
+                              ) : (
+                                <img src={getImageUrl(foto)} className="w-full h-full object-cover" alt="" />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => removeExistingFile(foto.id)}
+                                className="absolute top-1.5 right-1.5 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all opacity-0 group-hover:opacity-100 duration-200 z-10"
+                                title="Hapus Media"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">close</span>
+                              </button>
+                            </div>
+                            <div className="p-2 bg-slate-900/80 text-white text-[9px] font-medium leading-tight truncate text-center">
+                              <span className="block truncate font-bold">{foto.file_name || "media_file"}</span>
+                              <span className="block text-slate-400 mt-0.5">{uploadDate}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    {/* Jika semua media sebelumnya terhapus / kosong */}
+                    {(laporan?.fotos || []).filter((f: any) => !deletedFotoIds.includes(f.id)).length === 0 && (
+                      <div className="col-span-full py-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+                        Tidak ada media sebelumnya yang aktif.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upload media baru */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tambah Media Baru</h4>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">
+                      MAKS. {MAX_MEDIA_FILES - ((laporan?.fotos || []).length - deletedFotoIds.length)} FILE LAGI
+                    </span>
+                  </div>
+
+                  <label className="border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center gap-4 bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-3xl text-amber-600">cloud_upload</span>
+                    </div>
+                    <div className="text-center px-4">
+                      <p className="font-semibold text-slate-700 text-sm">Klik untuk tambah media baru atau seret file</p>
+                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                        Total media keseluruhan tidak boleh lebih dari 5 file. Format: JPG, JPEG, PNG, MP4, MOV, atau 3GP. Maksimal 100 MB per file.
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+
+                  {newFotoPreviews.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4">
+                      {newFotoPreviews.map((url, i) => {
+                        const isVideo = newFotos[i]?.type.startsWith("video/");
+                        return (
+                          <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-50">
+                            {isVideo ? (
+                              <video src={url} className="w-full h-full object-cover" />
+                            ) : (
+                              <img src={url} className="w-full h-full object-cover" alt="" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeNewFile(i)}
+                              className="absolute top-1.5 right-1.5 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all opacity-0 group-hover:opacity-100 duration-200 z-10"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                            </button>
+                            <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-amber-500 text-white text-[9px] font-bold text-center uppercase tracking-wide">
+                              Baru
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="flex gap-4 pb-4">
               <button type="button" onClick={() => navigate(`/detail/${id}`)}
@@ -1005,6 +1347,70 @@ export default function EditDetailPage() {
           </form>
         </div>
       </main>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+            <div className="h-2 bg-gradient-to-r from-amber-400 to-amber-500" />
+            <div className="p-6 sm:p-8 flex flex-col">
+              <div className="flex items-center gap-3 mb-6 pb-3 border-b border-slate-100">
+                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center border border-amber-100">
+                  <span className="material-symbols-outlined text-amber-600 text-2xl">edit_document</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Konfirmasi Perubahan</h3>
+                  <p className="text-xs text-slate-400">Berikut adalah daftar data yang Anda ubah:</p>
+                </div>
+              </div>
+
+              {/* Table of Changes */}
+              <div className="max-h-[300px] overflow-y-auto rounded-xl border border-slate-200 mb-6 custom-scrollbar">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-slate-50 text-slate-500 font-bold sticky top-0 border-b border-slate-200">
+                    <tr>
+                      <th className="p-3 w-1/3">Kolom</th>
+                      <th className="p-3 text-red-600">Sebelum</th>
+                      <th className="p-3 text-emerald-700">Sesudah</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {changesList.map((ch, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3 font-semibold text-slate-600">{ch.label}</td>
+                        <td className="p-3 text-red-500 bg-red-50/20 break-words">{ch.oldVal}</td>
+                        <td className="p-3 text-emerald-600 font-semibold bg-emerald-50/20 break-words">{ch.newVal}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="text-slate-500 text-xs mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menyimpan perubahan di atas? Perubahan ini akan dicatat ke audit log sistem.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-600 text-sm transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={executeSave}
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[18px]">done</span>
+                  Ya, Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

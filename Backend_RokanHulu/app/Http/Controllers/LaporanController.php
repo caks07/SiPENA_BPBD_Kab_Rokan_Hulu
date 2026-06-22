@@ -330,6 +330,25 @@ class LaporanController extends Controller
         if ($user->role->nama_role === 'operator' && $laporan->kecamatan_id != $user->kecamatan_id)
             return response()->json(['error' => 'Unauthorized'], 403);
 
+        // Decode fields if sent as multipart/form-data
+        $korbanInput = $request->input('korban');
+        if (is_string($korbanInput)) $korbanInput = json_decode($korbanInput, true);
+
+        $kerusakanInput = $request->input('kerusakan');
+        if (is_string($kerusakanInput)) $kerusakanInput = json_decode($kerusakanInput, true);
+
+        $fasilitasInput = $request->input('fasilitas_terdampak');
+        if (is_string($fasilitasInput)) $fasilitasInput = json_decode($fasilitasInput, true);
+
+        $logistikInput = $request->input('kebutuhan_logistik');
+        if (is_string($logistikInput)) $logistikInput = json_decode($logistikInput, true);
+
+        $detailInput = $request->input('detail_bencana');
+        if (is_string($detailInput)) $detailInput = json_decode($detailInput, true);
+
+        $auditInput = $request->input('audit_log');
+        if (is_string($auditInput)) $auditInput = json_decode($auditInput, true);
+
         DB::beginTransaction();
         try {
             $update = ['updated_at' => now(), 'is_baru' => false];
@@ -367,11 +386,10 @@ class LaporanController extends Controller
             DB::table('laporan_bencana')->where('id', $id)->update($update);
 
             // ── Korban update ──
-            if ($request->has('korban')) {
-                $korban  = $request->korban;
+            if ($korbanInput !== null) {
                 $allowed = ['korban_luka_ringan','korban_luka_berat','korban_meninggal',
                             'korban_hilang','kk_mengungsi','jiwa_mengungsi'];
-                $filtered = array_intersect_key((array)$korban, array_flip($allowed));
+                $filtered = array_intersect_key((array)$korbanInput, array_flip($allowed));
                 $exists = DB::table('korban_bencana')->where('laporan_id', $id)->exists();
                 if ($exists) {
                     DB::table('korban_bencana')->where('laporan_id', $id)
@@ -384,11 +402,10 @@ class LaporanController extends Controller
             }
 
             // ── Kerusakan update ──
-            if ($request->has('kerusakan')) {
-                $kerusakan = $request->kerusakan;
+            if ($kerusakanInput !== null) {
                 $allowed   = ['rumah_rusak_ringan','rumah_rusak_sedang','rumah_rusak_berat',
                               'catatan_fasilitas_umum','catatan_lain'];
-                $filtered  = array_intersect_key((array)$kerusakan, array_flip($allowed));
+                $filtered  = array_intersect_key((array)$kerusakanInput, array_flip($allowed));
                 $exists = DB::table('kerusakan_bencana')->where('laporan_id', $id)->exists();
                 if ($exists) {
                     DB::table('kerusakan_bencana')->where('laporan_id', $id)
@@ -401,17 +418,17 @@ class LaporanController extends Controller
             }
 
             // ── Fasilitas Umum Terdampak & Kebutuhan Logistik (Pivot) ──
-            if ($request->has('fasilitas_terdampak')) {
+            if ($fasilitasInput !== null) {
                 DB::table('kerusakan_fasilitas_umum')->where('laporan_id', $id)->delete();
-                $fIds = $request->fasilitas_terdampak;
+                $fIds = $fasilitasInput;
                 if (!empty($fIds)) {
                     $insertData = array_map(fn($fId) => ['laporan_id' => $id, 'fasilitas_umum_id' => $fId, 'created_at' => now()], (array)$fIds);
                     DB::table('kerusakan_fasilitas_umum')->insert($insertData);
                 }
             }
-            if ($request->has('kebutuhan_logistik')) {
+            if ($logistikInput !== null) {
                 DB::table('kerusakan_kebutuhan_logistik')->where('laporan_id', $id)->delete();
-                $lIds = $request->kebutuhan_logistik;
+                $lIds = $logistikInput;
                 if (!empty($lIds)) {
                     $insertData = array_map(fn($lId) => ['laporan_id' => $id, 'kebutuhan_logistik_id' => $lId, 'created_at' => now()], (array)$lIds);
                     DB::table('kerusakan_kebutuhan_logistik')->insert($insertData);
@@ -419,8 +436,8 @@ class LaporanController extends Controller
             }
 
             // ── Detail bencana spesifik update ──
-            if ($request->has('detail_bencana')) {
-                $detailData = (array) $request->detail_bencana;
+            if ($detailInput !== null) {
+                $detailData = (array) $detailInput;
                 $table = $this->getDetailTable($laporan->jenis_bencana);
                 if ($table && !empty($detailData)) {
                     $sanitized = $this->sanitizeDetailForPostgres($detailData);
@@ -436,9 +453,70 @@ class LaporanController extends Controller
                 }
             }
 
+            // ── Media update (Hapus / Tambah) ──
+            if ($request->has('deleted_foto_ids')) {
+                $delIds = $request->input('deleted_foto_ids');
+                if (is_string($delIds)) {
+                    $delIds = json_decode($delIds, true);
+                }
+                if (!empty($delIds)) {
+                    $fotosToDelete = DB::table('laporan_foto')
+                        ->where('laporan_id', $id)
+                        ->whereIn('id', $delIds)
+                        ->get();
+                    foreach ($fotosToDelete as $f) {
+                        $relativePath = str_replace('/storage/', '', $f->file_path);
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($relativePath);
+                    }
+                    DB::table('laporan_foto')
+                        ->where('laporan_id', $id)
+                        ->whereIn('id', $delIds)
+                        ->delete();
+                }
+            }
+
+            if ($request->hasFile('fotos')) {
+                $uploadedFiles = $request->file('fotos');
+                $existingCount = DB::table('laporan_foto')->where('laporan_id', $id)->count();
+                if ($existingCount + count($uploadedFiles) > 5) {
+                    return response()->json([
+                        'error' => 'Total media setelah diupdate tidak boleh melebihi 5 file.'
+                    ], 422);
+                }
+
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'mov', '3gp'];
+                foreach ($uploadedFiles as $foto) {
+                    $ext = strtolower($foto->getClientOriginalExtension());
+                    if (!in_array($ext, $allowedExtensions)) {
+                        return response()->json([
+                            'error' => 'Format file ' . $foto->getClientOriginalName() . ' tidak didukung.'
+                        ], 422);
+                    }
+                    if ($foto->getSize() > 100 * 1024 * 1024) {
+                        return response()->json([
+                            'error' => 'Ukuran file ' . $foto->getClientOriginalName() . ' melebihi 100 MB.'
+                        ], 422);
+                    }
+                }
+
+                foreach ($uploadedFiles as $i => $foto) {
+                    $path = $foto->store('laporan_fotos', 'public');
+                    $maxSort = DB::table('laporan_foto')->where('laporan_id', $id)->max('sort_order') ?? 0;
+                    DB::table('laporan_foto')->insert([
+                        'laporan_id' => $id,
+                        'file_path'  => '/storage/' . $path,
+                        'file_name'  => $foto->getClientOriginalName(),
+                        'mime_type'  => $foto->getMimeType(),
+                        'file_size'  => $foto->getSize(),
+                        'sort_order' => $maxSort + 1,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+
             // ── Catat log ──
-            if ($request->has('audit_log')) {
-                $audit = $request->audit_log;
+            if ($auditInput !== null) {
+                $audit = $auditInput;
                 DB::table('laporan_log')->insert([
                     'laporan_id'    => $id,
                     'user_id'       => $user->id,

@@ -61,6 +61,7 @@
   --font-body-sm: "Inter";
 
   --breakpoint-3xl: 1920px;
+  --breakpoint-xs: 480px;
 }
 
 .material-symbols-outlined {

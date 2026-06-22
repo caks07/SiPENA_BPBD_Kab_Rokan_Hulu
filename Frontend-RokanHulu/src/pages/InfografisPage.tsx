@@ -70,9 +70,9 @@ function DonutSVG({ data, total }: { data: { label: string; value: number; color
           />
         ))}
       </svg>
-      <div className="absolute text-center">
-        <p className="text-2xl font-black text-slate-800 leading-none">{total}</p>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Total</p>
+      <div className="absolute text-center max-w-[100px] px-2 min-w-0">
+        <p className="text-2xl font-black text-slate-800 leading-none truncate" title={String(total)}>{total}</p>
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 truncate">Total</p>
       </div>
     </div>
   );
@@ -428,21 +428,21 @@ export default function InfografisPage() {
 
             {/* SECTION 2: KPI UTAMA */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 kpi-grid">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-amber-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-amber-500 min-w-0">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Kejadian</p>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={String(total)}>{total}</p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-blue-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-blue-500 min-w-0">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Titik Terdampak</p>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={`${byKec.length} Kecamatan`}>{byKec.length} <span className="text-xs sm:text-sm text-slate-400">Kec</span></p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-red-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-red-500 min-w-0">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Korban</p>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 truncate" title={String(totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi)}>{totalMeninggal + totalLukaRingan + totalLukaBerat + totalMengungsi}</p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-emerald-500">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 border-l-4 border-l-emerald-500 min-w-0">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Dominan</p>
-                <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 break-words leading-tight mt-1">{statusDominan}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 truncate leading-tight mt-1" title={statusDominan}>{statusDominan}</p>
               </div>
             </div>
 
@@ -453,10 +453,10 @@ export default function InfografisPage() {
                 <DonutSVG data={byJenis} total={total} />
                 <div className="mt-6 grid grid-cols-2 gap-2 w-full">
                   {byJenis.slice(0,6).map((d,i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: d.color}}></span>
-                      <span className="text-slate-600 truncate">{d.label}</span>
-                      <span className="ml-auto font-bold text-slate-800">{d.value}</span>
+                    <div key={i} className="flex items-center gap-2 text-xs min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{backgroundColor: d.color}}></span>
+                      <span className="text-slate-600 truncate min-w-0 flex-1">{d.label}</span>
+                      <span className="ml-auto font-bold text-slate-800 flex-shrink-0">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -467,10 +467,10 @@ export default function InfografisPage() {
                 <DonutSVG data={byStatus} total={total} />
                 <div className="mt-6 grid grid-cols-2 gap-2 w-full">
                   {byStatus.map((d,i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: d.color}}></span>
-                      <span className="text-slate-600 truncate">{d.label}</span>
-                      <span className="ml-auto font-bold text-slate-800">{d.value}</span>
+                    <div key={i} className="flex items-center gap-2 text-xs min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{backgroundColor: d.color}}></span>
+                      <span className="text-slate-600 truncate min-w-0 flex-1">{d.label}</span>
+                      <span className="ml-auto font-bold text-slate-800 flex-shrink-0">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -485,7 +485,7 @@ export default function InfografisPage() {
                       <div className="flex-1 bg-slate-100 h-4 rounded overflow-hidden">
                         <div className="bg-amber-500 h-full rounded" style={{ width: `${(k.value / maxKec) * 100}%` }} />
                       </div>
-                      <div className="w-6 text-xs font-black text-slate-800">{k.value}</div>
+                      <div className="w-10 text-xs font-black text-slate-800 text-right truncate" title={String(k.value)}>{k.value}</div>
                     </div>
                   ))}
                 </div>
@@ -548,22 +548,22 @@ export default function InfografisPage() {
                       <span className="material-symbols-outlined text-amber-500">house</span>
                       <h4 className="font-bold text-slate-800 text-sm uppercase">Kerusakan Rumah</h4>
                     </div>
-                    <div className="flex items-end items-center gap-3 mb-4">
-                      <span className="text-3xl font-black text-slate-800">{totalRumah}</span>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pb-1">Total Unit</span>
+                    <div className="flex items-end items-center gap-3 mb-4 min-w-0">
+                      <span className="text-3xl font-black text-slate-800 truncate" title={String(totalRumah)}>{totalRumah}</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pb-1 truncate">Total Unit</span>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400"></span>Rusak Berat</span>
-                        <span className="font-bold text-slate-700">{rusakBerat}</span>
+                      <div className="flex justify-between items-center text-sm min-w-0 gap-2">
+                        <span className="text-slate-500 flex items-center gap-1.5 min-w-0 truncate"><span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></span>Rusak Berat</span>
+                        <span className="font-bold text-slate-700 flex-shrink-0 truncate max-w-[80px]" title={String(rusakBerat)}>{rusakBerat}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-400"></span>Rusak Sedang</span>
-                        <span className="font-bold text-slate-700">{rusakSedang}</span>
+                      <div className="flex justify-between items-center text-sm min-w-0 gap-2">
+                        <span className="text-slate-500 flex items-center gap-1.5 min-w-0 truncate"><span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>Rusak Sedang</span>
+                        <span className="font-bold text-slate-700 flex-shrink-0 truncate max-w-[80px]" title={String(rusakSedang)}>{rusakSedang}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span>Rusak Ringan</span>
-                        <span className="font-bold text-slate-700">{rusakRingan}</span>
+                      <div className="flex justify-between items-center text-sm min-w-0 gap-2">
+                        <span className="text-slate-500 flex items-center gap-1.5 min-w-0 truncate"><span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0"></span>Rusak Ringan</span>
+                        <span className="font-bold text-slate-700 flex-shrink-0 truncate max-w-[80px]" title={String(rusakRingan)}>{rusakRingan}</span>
                       </div>
                     </div>
                   </div>
@@ -578,9 +578,9 @@ export default function InfografisPage() {
                       {byFasilitas.length > 0 ? (
                         <div className="grid grid-cols-1 gap-2 content-start">
                           {byFasilitas.map(([label, count], i) => (
-                            <div key={i} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex justify-between items-center">
-                              <span className="text-xs text-slate-600 font-bold uppercase truncate" title={label}>{label}</span>
-                              <span className="text-lg font-black text-slate-700 leading-none">{count}</span>
+                            <div key={i} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex justify-between items-center min-w-0 gap-2">
+                              <span className="text-xs text-slate-600 font-bold uppercase truncate min-w-0 flex-1" title={label}>{label}</span>
+                              <span className="text-lg font-black text-slate-700 leading-none flex-shrink-0">{count}</span>
                             </div>
                           ))}
                         </div>
@@ -613,7 +613,7 @@ export default function InfografisPage() {
       {/* Loading Overlay saat capture-mode berlangsung */}
       {isCapturing && (
         <div className="no-capture fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md text-white animate-in fade-in duration-200">
-          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
+          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-8 max-w-sm w-[calc(100%-32px)] shadow-2xl flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6 relative">
               <span className="material-symbols-outlined text-amber-500 text-3xl animate-pulse">photo_camera</span>
               <div className="absolute inset-0 rounded-full border-2 border-amber-500/20 animate-ping opacity-75" />

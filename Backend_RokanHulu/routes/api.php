@@ -23,7 +23,7 @@ Route::get('/options/{jenis}', [OptionsController::class, 'getOptions']);
 
 // Password gate untuk form laporan publik (throttle: 10x/menit)
 Route::post('/form-access/verify', [FormAccessController::class, 'verify'])
-     ->middleware('throttle:10,1');
+     ->middleware('throttle:100,1');
 
 // POST laporan — masih public, tapi wajib X-Form-Access-Token di header
 // Token diverifikasi di LaporanController::store()

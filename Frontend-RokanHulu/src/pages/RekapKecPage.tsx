@@ -175,8 +175,8 @@ export default function RekapKecPage() {
                           <span className="font-medium text-slate-800 capitalize text-sm">{item.jenis_bencana?.replace(/_/g, " ")}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-slate-500 text-sm max-w-[180px] truncate">{item.lokasi_text ?? "-"}</td>
-                      <td className="px-5 py-4 text-sm text-slate-700">{item.nama_pelapor ?? "-"}</td>
+                      <td className="px-5 py-4 text-slate-500 text-sm max-w-[180px] truncate" title={item.lokasi_text ?? ""}>{item.lokasi_text ?? "-"}</td>
+                      <td className="px-5 py-4 text-sm text-slate-700 max-w-[150px] truncate" title={item.nama_pelapor ?? ""}>{item.nama_pelapor ?? "-"}</td>
                       <td className="px-5 py-4">
                         <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase ${siaga.cls}`}>
                           {siaga.label}
@@ -278,7 +278,7 @@ export default function RekapKecPage() {
                           <span className="material-symbols-outlined text-[13px]">person</span>
                           <span className="text-[9px] font-bold uppercase tracking-wider">Pelapor</span>
                         </div>
-                        <span className="font-bold text-slate-700 text-xs block truncate">
+                        <span className="font-bold text-slate-700 text-xs block truncate" title={item.nama_pelapor ?? ""}>
                           {item.nama_pelapor ?? "-"}
                         </span>
                       </div>

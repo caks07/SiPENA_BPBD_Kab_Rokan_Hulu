@@ -66,11 +66,11 @@ export default function FormFlow() {
       {/* TopNav */}
       <nav
         style={{ background: "rgba(28,31,43,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-        className="flex justify-between items-center px-6 h-20 w-full fixed top-0 z-50 shadow-xl"
+        className="flex justify-between items-center px-4 sm:px-6 h-20 w-full fixed top-0 z-50 shadow-xl"
       >
-        <div className="flex items-center gap-3">
-          <img src="/logo_sipena.png" alt="Logo SIPENA" className="h-12 w-auto" />
-          <span className="text-2xl font-black text-white tracking-tighter">SiPENA</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img src="/logo_sipena.png" alt="Logo SIPENA" className="h-10 sm:h-12 w-auto" />
+          <span className="text-xl sm:text-2xl font-black text-white tracking-tighter hidden min-[380px]:inline">SiPENA</span>
         </div>
         <div className="hidden md:flex gap-8 items-center text-sm font-semibold">
           <span className="text-amber-500 border-b-2 border-amber-500 pb-1">Laporan Kejadian</span>
@@ -78,7 +78,7 @@ export default function FormFlow() {
         <div>
           <button
             onClick={handleCancel}
-            className="px-6 py-2 rounded-lg font-bold text-white transition-all active:scale-95 bg-red-600 hover:bg-red-700 shadow-md"
+            className="px-3.5 py-1.5 sm:px-6 sm:py-2 rounded-lg font-bold text-white transition-all active:scale-95 bg-red-600 hover:bg-red-700 shadow-md text-xs sm:text-sm"
           >
             Batalkan
           </button>

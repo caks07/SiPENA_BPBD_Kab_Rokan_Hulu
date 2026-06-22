@@ -10,7 +10,7 @@ import api from "../api/client";
 import SipenaNav from "../components/SipenaNav";
 import NewsTicker from "../components/NewsTicker";
 import { useAuth } from "../state/AuthContext";
-import { generatePdfReport } from "../utils/pdfExport";
+import { generatePdfReport, generateLogPdfReport } from "../utils/pdfExport";
 
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -355,6 +355,7 @@ export default function DetailPage() {
   const [newStatus, setNewStatus] = useState("siaga3");
   const [updateNotes, setUpdateNotes] = useState("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [exportLoadingText, setExportLoadingText] = useState<string | null>(null);
 
   const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,7 +406,31 @@ export default function DetailPage() {
   const canPrint = role !== "operator";
 
   const handlePrint = () => {
-    generatePdfReport(laporan, options);
+    setExportLoadingText("Mengekspor PDF...");
+    setTimeout(() => {
+      try {
+        generatePdfReport(laporan, options);
+      } catch (err) {
+        console.error(err);
+        alert("Gagal mengekspor PDF.");
+      } finally {
+        setExportLoadingText(null);
+      }
+    }, 600);
+  };
+
+  const handleExportLogPdf = () => {
+    setExportLoadingText("Mengekspor Perkembangan Laporan...");
+    setTimeout(async () => {
+      try {
+        await generateLogPdfReport(laporan, options, kecamatanList);
+      } catch (err) {
+        console.error(err);
+        alert("Gagal mengekspor PDF perkembangan laporan.");
+      } finally {
+        setExportLoadingText(null);
+      }
+    }, 600);
   };
 
   return (
@@ -720,7 +745,19 @@ export default function DetailPage() {
 
               {/* Log Aktivitas */}
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Log Aktivitas</h4>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 no-print">
+                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Log Aktivitas</h4>
+                  {canPrint && (
+                    <button
+                      type="button"
+                      onClick={handleExportLogPdf}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg transition-colors active:scale-95 shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+                      Export Perkembangan Laporan
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
                   {/* Selalu tampilkan laporan dibuat di urutan pertama (paling tua) */}
                   <div className="relative pl-8">
@@ -893,6 +930,25 @@ export default function DetailPage() {
               <span className="material-symbols-outlined text-4xl">chevron_right</span>
             </button>
           )}
+        </div>
+      )}
+      {/* Loading Overlay saat export berlangsung */}
+      {exportLoadingText && (
+        <div className="no-capture fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md text-white animate-in fade-in duration-200">
+          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-[calc(100%-32px)] shadow-2xl flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6 relative">
+              <span className="material-symbols-outlined text-amber-500 text-3xl animate-spin">downloading</span>
+              <div className="absolute inset-0 rounded-full border-2 border-amber-500/20 animate-ping opacity-75" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight mb-2">{exportLoadingText}</h3>
+            <p className="text-xs text-slate-400 leading-relaxed mb-6">
+              Sedang memproses dokumen Anda. Silakan tunggu sebentar...
+            </p>
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/30 px-4 py-2.5 rounded-full">
+              <div className="animate-spin w-3.5 h-3.5 rounded-full border-2 border-amber-400 border-t-transparent" />
+              <span>Memproses File</span>
+            </div>
+          </div>
         </div>
       )}
     </div>

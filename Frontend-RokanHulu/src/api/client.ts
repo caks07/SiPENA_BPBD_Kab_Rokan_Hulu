@@ -18,7 +18,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       const isLoginRequest = error.config?.url?.includes("/auth/login");
-      if (!isLoginRequest) {
+      const isFormAccessRequest = error.config?.url?.includes("/form-access/verify");
+      const isLaporanRequest = error.config?.url?.includes("/laporan");
+      if (!isLoginRequest && !isFormAccessRequest && !isLaporanRequest) {
         localStorage.clear();
         window.location.href = "/login";
       }
