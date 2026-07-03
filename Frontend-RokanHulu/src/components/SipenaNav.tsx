@@ -13,6 +13,7 @@ const NAV_ADMIN_KAB: NavItem[] = [
   { label: "Peta Interaktif", to: "/dashboard" },
   { label: "Rekap Kabupaten", to: "/rekap/kabupaten" },
   { label: "Infografis", to: "/infografis" },
+  { label: "Log Aktivitas", to: "/log-aktivitas" },
   { label: "Administrator", to: "/administrator" },
 ];
 
@@ -179,7 +180,8 @@ export default function SipenaNav() {
                     {item.to.includes("dashboard") ? "map" :
                       item.to.includes("rekap") ? "table_chart" :
                         item.to.includes("infografis") ? "bar_chart" :
-                          item.to.includes("administrator") ? "manage_accounts" : "circle"}
+                          item.to.includes("log-aktivitas") ? "history" :
+                            item.to.includes("administrator") ? "manage_accounts" : "circle"}
                   </span>
                   {item.label}
                 </Link>

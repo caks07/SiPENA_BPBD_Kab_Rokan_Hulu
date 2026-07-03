@@ -31,6 +31,15 @@ class AuthController extends Controller
         // Update last login
         $user->update(['last_login_at' => now()]);
 
+        // Catat ke activity_logs
+        DB::table('activity_logs')->insert([
+            'user_id'    => $user->id,
+            'aksi'       => 'login',
+            'catatan'    => "Pengguna {$user->name} (" . ($role?->nama_role ?? 'user') . ") berhasil masuk ke sistem.",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
         // Hapus token lama (opsional, hindari token menumpuk)
         $user->tokens()->delete();
 
@@ -52,7 +61,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            DB::table('activity_logs')->insert([
+                'user_id'    => $user->id,
+                'aksi'       => 'logout',
+                'catatan'    => "Pengguna {$user->name} telah keluar dari sistem.",
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+            $user->currentAccessToken()->delete();
+        }
         return response()->json(['message' => 'Logged out']);
     }
 

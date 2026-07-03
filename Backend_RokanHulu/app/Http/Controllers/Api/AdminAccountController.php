@@ -70,6 +70,15 @@ class AdminAccountController extends Controller
             'updated_at'     => now(),
         ]);
 
+        // Catat aktivitas
+        DB::table('activity_logs')->insert([
+            'user_id'    => $request->user()->id,
+            'aksi'       => 'create_user',
+            'catatan'    => "Membuat akun baru: {$request->name} (Username: {$request->username})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
         $user = DB::table('users as u')
             ->join('roles as r', 'u.role_id', '=', 'r.id')
             ->where('u.id', $id)
@@ -128,6 +137,15 @@ class AdminAccountController extends Controller
 
         DB::table('users')->where('id', $id)->update($update);
 
+        // Catat aktivitas
+        DB::table('activity_logs')->insert([
+            'user_id'    => $requestUser->id,
+            'aksi'       => 'update_user',
+            'catatan'    => "Memperbarui data akun Pengguna #{$id} (Username: {$user->username})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
         // Jika password diubah, hapus token lama agar dipaksa login ulang
         if ($request->filled('password')) {
             DB::table('personal_access_tokens')
@@ -161,6 +179,15 @@ class AdminAccountController extends Controller
             'password'       => Hash::make($request->password),
             'password_plain' => $request->password,
             'updated_at'     => now(),
+        ]);
+
+        // Catat aktivitas
+        DB::table('activity_logs')->insert([
+            'user_id'    => $request->user()->id,
+            'aksi'       => 'change_password',
+            'catatan'    => "Memperbarui password akun Pengguna #{$id} ({$user->username})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
         ]);
 
         // Hapus semua token lama agar paksa login ulang
@@ -210,6 +237,15 @@ class AdminAccountController extends Controller
             'deleted_at' => now(),
             'is_active'  => false,
             'updated_at' => now(),
+        ]);
+
+        // Catat aktivitas
+        DB::table('activity_logs')->insert([
+            'user_id'    => $request->user()->id,
+            'aksi'       => 'delete_user',
+            'catatan'    => "Menghapus akun Pengguna #{$id} ({$user->username})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
         ]);
 
         // Hapus semua token
@@ -264,6 +300,16 @@ class AdminAccountController extends Controller
             'updated_at' => now(),
         ]);
 
+        // Catat aktivitas
+        $statusStr = $newActive ? 'mengaktifkan' : 'menonaktifkan';
+        DB::table('activity_logs')->insert([
+            'user_id'    => $request->user()->id,
+            'aksi'       => 'toggle_active_user',
+            'catatan'    => "Mengubah status aktif (" . $statusStr . ") akun Pengguna #{$id} ({$user->username})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
         if (!$newActive) {
             DB::table('personal_access_tokens')
                 ->where('tokenable_type', 'App\\Models\\User')
@@ -275,5 +321,20 @@ class AdminAccountController extends Controller
             'message'   => $newActive ? 'Akun berhasil diaktifkan.' : 'Akun berhasil dinonaktifkan.',
             'is_active' => $newActive,
         ]);
+    }
+
+    /**
+     * GET /api/admin/activity-logs
+     */
+    public function activityLogs(Request $request)
+    {
+        $logs = DB::table('activity_logs as al')
+            ->leftJoin('users as u', 'al.user_id', '=', 'u.id')
+            ->leftJoin('roles as r', 'u.role_id', '=', 'r.id')
+            ->select('al.*', 'u.name as user_name', 'u.username', 'r.nama_role as user_role')
+            ->orderBy('al.created_at', 'desc')
+            ->get();
+
+        return response()->json($logs);
     }
 }

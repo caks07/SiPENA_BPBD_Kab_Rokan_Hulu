@@ -41,6 +41,20 @@ export default function RekapKabPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
+  const [searchVal, setSearchVal] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+
+  const handleSearchSubmit = () => {
+    setAppliedSearch(searchVal);
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchVal("");
+    setAppliedSearch("");
+    setCurrentPage(1);
+  };
+
   const queryClient = useQueryClient();
   const [statusModal, setStatusModal] = useState<any>(null);
   const [newStatus, setNewStatus] = useState<string>("siaga3");
@@ -88,11 +102,20 @@ export default function RekapKabPage() {
     const itemLocalDate = toLocalDateString(item.waktu_kejadian);
     if (tanggalDari && itemLocalDate < tanggalDari) return false;
     if (tanggalSampai && itemLocalDate > tanggalSampai) return false;
+    if (appliedSearch) {
+      const q = appliedSearch.toLowerCase();
+      const pelapor = String(item.nama_pelapor || "").toLowerCase();
+      const kecamatan = String(item.nama_kecamatan || "").toLowerCase();
+      const jenis = String(item.jenis_bencana || "").replace(/_/g, " ").toLowerCase();
+      const statusLabel = String(SIAGA_LABEL[item.status] ?? item.status).toLowerCase();
+      const match = pelapor.includes(q) || kecamatan.includes(q) || jenis.includes(q) || statusLabel.includes(q);
+      if (!match) return false;
+    }
     return true;
   });
 
   // Reset pagination when filters change
-  useEffect(() => { setCurrentPage(1); }, [filterKecamatan, filterJenis, filterSiaga, tanggalDari, tanggalSampai]);
+  useEffect(() => { setCurrentPage(1); }, [filterKecamatan, filterJenis, filterSiaga, tanggalDari, tanggalSampai, appliedSearch]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -363,6 +386,40 @@ export default function RekapKabPage() {
           <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
             {/* Filter */}
             <div className="p-4 sm:p-6 bg-slate-50/50 border-b border-slate-200 no-capture">
+              {/* Pencarian Laporan */}
+              <div className="mb-6 pb-6 border-b border-slate-200/60 flex flex-col sm:flex-row items-end gap-3">
+                <div className="flex-1 flex flex-col gap-1.5 w-full">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pencarian Laporan</label>
+                  <input
+                    type="text"
+                    placeholder="Cari berdasarkan nama pelapor, kecamatan, jenis bencana, atau status siaga..."
+                    className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 shadow-sm"
+                    value={searchVal}
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearchSubmit();
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleSearchSubmit}
+                    className="flex-1 sm:flex-initial h-11 px-6 bg-[#1C1F2B] hover:bg-slate-800 text-white rounded-xl text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">search</span>
+                    Cari
+                  </button>
+                  {appliedSearch && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="h-11 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold border border-slate-200 transition-colors flex items-center justify-center"
+                    >
+                      Batal
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kecamatan</label>
@@ -858,7 +915,7 @@ export default function RekapKabPage() {
               <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-red-50/50">
                 <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
                   <span className="material-symbols-outlined">warning</span>
-                  Konfirmasi Hapus Laporan
+                  Hapus Laporan
                 </h2>
                 <button onClick={() => setDeleteModal(null)} className="text-red-400 hover:text-red-600">
                   <span className="material-symbols-outlined">close</span>
@@ -866,7 +923,7 @@ export default function RekapKabPage() {
               </div>
               <div className="p-5 space-y-4">
                 <p className="text-sm text-slate-600">
-                  Anda akan menghapus laporan ini secara permanen. Data tidak dapat dikembalikan setelah dihapus.
+                  Anda akan memindahkan laporan ini ke tempat sampah / Recycle Bin. Laporan dapat dipulihkan kembali melalui halaman Log Aktivitas.
                 </p>
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Laporan #{deleteModal.id}</p>

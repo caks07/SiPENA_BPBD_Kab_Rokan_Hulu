@@ -11,8 +11,8 @@ class LaporanController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $trash = $request->query('trash') === 'true';
         $query = DB::table('laporan_bencana as l')
-            ->whereNull('l.deleted_at')
             ->join('kecamatan as k', 'l.kecamatan_id', '=', 'k.id')
             ->leftJoin('korban_bencana as kb', 'kb.laporan_id', '=', 'l.id')
             ->leftJoin('kerusakan_bencana as krb', 'krb.laporan_id', '=', 'l.id')
@@ -21,8 +21,15 @@ class LaporanController extends Controller
                 'kb.korban_meninggal', 'kb.korban_luka_berat',
                 'kb.korban_luka_ringan', 'kb.jiwa_mengungsi',
                 'kb.korban_hilang', 'kb.kk_mengungsi',
-                'krb.rumah_rusak_berat', 'krb.rumah_rusak_sedang', 'krb.rumah_rusak_ringan'
+                'krb.rumah_rusak_berat', 'krb.rumah_rusak_sedang', 'krb.rumah_rusak_ringan',
+                DB::raw("(SELECT u_del.name FROM laporan_log ll_del JOIN users u_del ON ll_del.user_id = u_del.id WHERE ll_del.laporan_id = l.id AND ll_del.aksi = 'delete' ORDER BY ll_del.created_at DESC LIMIT 1) as deleted_by_name")
             );
+
+        if ($trash) {
+            $query->whereNotNull('l.deleted_at');
+        } else {
+            $query->whereNull('l.deleted_at');
+        }
 
         if ($user && $user->role->nama_role === 'operator' && $user->kecamatan_id) {
             $query->where('l.kecamatan_id', $user->kecamatan_id);
@@ -303,6 +310,15 @@ class LaporanController extends Controller
 
             DB::commit();
 
+            // Catat ke activity_logs
+            DB::table('activity_logs')->insert([
+                'user_id'    => $user?->id,
+                'aksi'       => 'create_report',
+                'catatan'    => "Membuat laporan kejadian bencana baru: " . strtoupper($laporanData['jenis_bencana'] ?? '') . " di " . ($laporanData['lokasi_text'] ?? ''),
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+
             // ── [5] Hapus form access token setelah laporan sukses tersimpan ─────
             // Token dihapus di sini (bukan di awal) agar user bisa retry tanpa re-enter password
             Cache::forget("form_access:{$formToken}");
@@ -549,6 +565,15 @@ class LaporanController extends Controller
             }
 
             DB::commit();
+
+            // Catat ke activity_logs
+            DB::table('activity_logs')->insert([
+                'user_id'    => $user->id,
+                'aksi'       => 'update_report',
+                'catatan'    => "Memperbarui detail laporan Bencana #{$id} (" . strtoupper($laporan->jenis_bencana) . ")",
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('update laporan error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -575,10 +600,13 @@ class LaporanController extends Controller
             return response()->json(['error' => 'Not Found'], 404);
         }
 
-        // Soft delete if possible, or actual delete
+        // Security check for operator
+        if ($user->role->nama_role === 'operator' && $laporan->kecamatan_id != $user->kecamatan_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         try {
             DB::beginTransaction();
-            // Since there's a deleted_at column according to DB schema:
             DB::table('laporan_bencana')->where('id', $id)->update([
                 'deleted_at' => now()
             ]);
@@ -588,11 +616,21 @@ class LaporanController extends Controller
                 'laporan_id' => $id,
                 'user_id'    => $user->id,
                 'aksi'       => 'delete',
-                'catatan'    => 'Laporan dihapus oleh ' . $user->name,
+                'catatan'    => 'Laporan dipindahkan ke Recycle Bin oleh ' . $user->name,
                 'created_at' => now(),
             ]);
+
+            // Catat ke activity_logs
+            DB::table('activity_logs')->insert([
+                'user_id'    => $user->id,
+                'aksi'       => 'delete_report',
+                'catatan'    => "Memindahkan laporan Bencana #{$id} (" . strtoupper($laporan->jenis_bencana) . ") ke Recycle Bin",
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+
             DB::commit();
-            return response()->json(['message' => 'Laporan berhasil dihapus']);
+            return response()->json(['message' => 'Laporan berhasil dipindahkan ke Recycle Bin']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('delete laporan error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -695,5 +733,97 @@ class LaporanController extends Controller
             }
         }
         return $result;
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !in_array($user->role->nama_role, ['admin', 'operator'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return response()->json(['error' => 'ID tidak boleh kosong.'], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $reports = DB::table('laporan_bencana')->whereIn('id', $ids)->get();
+
+            foreach ($reports as $l) {
+                // Security check for operator
+                if ($user->role->nama_role === 'operator' && $l->kecamatan_id != $user->kecamatan_id) {
+                    continue;
+                }
+
+                DB::table('laporan_bencana')->where('id', $l->id)->update(['deleted_at' => null]);
+
+                DB::table('laporan_log')->insert([
+                    'laporan_id' => $l->id,
+                    'user_id'    => $user->id,
+                    'aksi'       => 'restore',
+                    'catatan'    => 'Laporan dipulihkan dari Recycle Bin oleh ' . $user->name,
+                    'created_at' => now(),
+                ]);
+
+                DB::table('activity_logs')->insert([
+                    'user_id'    => $user->id,
+                    'aksi'       => 'restore_report',
+                    'catatan'    => "Memulihkan laporan Bencana #{$l->id} (" . strtoupper($l->jenis_bencana) . ")",
+                    'ip_address' => $request->ip(),
+                    'created_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Laporan terpilih berhasil dipulihkan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal memulihkan laporan.'], 500);
+        }
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !in_array($user->role->nama_role, ['admin', 'operator'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return response()->json(['error' => 'ID tidak boleh kosong.'], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $reports = DB::table('laporan_bencana')->whereIn('id', $ids)->get();
+
+            foreach ($reports as $l) {
+                // Security check for operator
+                if ($user->role->nama_role === 'operator' && $l->kecamatan_id != $user->kecamatan_id) {
+                    continue;
+                }
+
+                DB::table('laporan_bencana')->where('id', $l->id)->delete();
+
+                DB::table('activity_logs')->insert([
+                    'user_id'    => $user->id,
+                    'aksi'       => 'permanent_delete_report',
+                    'catatan'    => "Menghapus secara permanen laporan Bencana #{$l->id} (" . strtoupper($l->jenis_bencana) . ")",
+                    'ip_address' => $request->ip(),
+                    'created_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Laporan terpilih berhasil dihapus secara permanen']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal menghapus laporan secara permanen.'], 500);
+        }
     }
 }

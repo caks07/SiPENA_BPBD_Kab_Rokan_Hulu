@@ -14,6 +14,8 @@ type FieldConfig = {
   unit?: string;
 };
 
+const DECIMAL_FIELDS = ["luas_genangan", "luas_lahan", "luas_terbakar"];
+
 const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
   banjir: [
     { name: "penyebab_ids", label: "Kronologi Kejadian (Penyebab)", type: "checkbox", optKey: "opt_banjir_penyebab", required: true, showOtherField: true, otherName: "penyebab_lain" },
@@ -112,7 +114,7 @@ export default function Step2DetailBencana() {
     if (jenis_bencana === "banjir") {
       const luas = detail.luas_genangan;
       if (luas !== undefined && luas !== null && luas !== "") {
-        const num = Number(luas);
+        const num = Number(String(luas).replace(',', '.'));
         if (isNaN(num) || num <= 0) {
           alert("Estimasi Luas Genangan harus lebih besar dari 0.");
           return;
@@ -142,7 +144,10 @@ export default function Step2DetailBencana() {
           alert(`Kolom "${field.label}" wajib diisi.`);
           return;
         }
-        const num = Number(val);
+        const normalizedVal = DECIMAL_FIELDS.includes(field.name)
+          ? String(val).replace(',', '.')
+          : val;
+        const num = Number(normalizedVal);
         if (isNaN(num) || num <= 0) {
           alert(`Kolom "${field.label}" tidak boleh bernilai 0 atau kurang dari 0.`);
           return;
@@ -238,32 +243,52 @@ export default function Step2DetailBencana() {
         )}
 
         {(field.type === "text" || field.type === "number") && (
-          <input
-            type={field.type}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none"
-            value={detail[field.name] || ""}
-            onChange={e => {
-              if (field.name === "dimensi_longsor") {
-                let val = e.target.value.replace(/[^0-9xX., ]/g, '');
-                setField(field.name, val);
-              } else if (field.type === "number") {
-                let val = e.target.value.replace(/[^0-9]/g, '');
-                const slicedVal = val.slice(0, 9);
-                let cleanVal = slicedVal;
-                if (cleanVal !== "") {
-                  cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
-                }
-                setField(field.name, cleanVal);
-              } else {
-                setField(field.name, e.target.value);
+          <div className="w-full">
+            <input
+              type="text"
+              inputMode={field.type === "number"
+                ? (DECIMAL_FIELDS.includes(field.name) ? "decimal" : "numeric")
+                : undefined
               }
-            }}
-            onKeyDown={field.type === "number"
-              ? (e) => { if (["e","E","+","-",".",","].includes(e.key)) e.preventDefault(); }
-              : undefined
-            }
-            placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
-          />
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-400 outline-none"
+              value={detail[field.name] || ""}
+              onChange={e => {
+                if (field.name === "dimensi_longsor") {
+                  let val = e.target.value.replace(/[^0-9xX., ]/g, '');
+                  setField(field.name, val);
+                } else if (field.type === "number") {
+                  if (DECIMAL_FIELDS.includes(field.name)) {
+                    // Hanya izinkan digit dan koma/titik. Ganti titik dengan koma.
+                    let val = e.target.value.replace(/\./g, ',');
+                    val = val.replace(/[^0-9,]/g, '');
+                    // Pastikan maksimal hanya ada satu koma
+                    const parts = val.split(',');
+                    if (parts.length > 2) {
+                      val = parts[0] + ',' + parts.slice(1).join('');
+                    }
+                    setField(field.name, val);
+                  } else {
+                    let val = e.target.value.replace(/[^0-9]/g, '');
+                    const slicedVal = val.slice(0, 9);
+                    let cleanVal = slicedVal;
+                    if (cleanVal !== "") {
+                      cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
+                    }
+                    setField(field.name, cleanVal);
+                  }
+                } else {
+                  setField(field.name, e.target.value);
+                }
+              }}
+              placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
+            />
+            {field.type === "number" && DECIMAL_FIELDS.includes(field.name) && (
+              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-medium">
+                <span className="material-symbols-outlined text-sm text-amber-500">info</span>
+                * Contoh format input: 1,5 (gunakan koma untuk angka desimal)
+              </p>
+            )}
+          </div>
         )}
 
         {showOther && field.otherName && (

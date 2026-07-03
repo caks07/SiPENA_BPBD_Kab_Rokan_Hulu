@@ -92,17 +92,18 @@ class DashboardController extends Controller
     {
         $user  = $request->user();
         $kecId = $user->kecamatan_id;
+        $trash = $request->query('trash') === 'true';
         $rows  = DB::table('laporan_bencana as l')
             ->join('kecamatan as k', 'l.kecamatan_id', '=', 'k.id')
             ->leftJoin('korban_bencana as kb',   'kb.laporan_id',  '=', 'l.id')
             ->leftJoin('kerusakan_bencana as kr', 'kr.laporan_id', '=', 'l.id')
-            ->whereNull('l.deleted_at')
             ->select('l.*', 'k.nama_kecamatan',
                 DB::raw('COALESCE(kb.korban_meninggal,0)   as korban_meninggal'),
                 DB::raw('COALESCE(kb.korban_luka_ringan,0) as korban_luka_ringan'),
                 DB::raw('COALESCE(kb.korban_luka_berat,0)  as korban_luka_berat'),
                 DB::raw('COALESCE(kb.jiwa_mengungsi,0)     as jiwa_mengungsi'))
             ->when($kecId, fn($q) => $q->where('l.kecamatan_id', $kecId))
+            ->when($trash, fn($q) => $q->whereNotNull('l.deleted_at'), fn($q) => $q->whereNull('l.deleted_at'))
             ->orderBy('l.created_at', 'desc')
             ->get();
         return response()->json($rows);

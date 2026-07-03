@@ -564,7 +564,11 @@ export default function EditDetailPage() {
           const inner = v.slice(1,-1).trim();
           parsed[k] = inner ? inner.split(",").map(s => Number(s.trim())) : [];
         } else {
-          parsed[k] = v;
+          if (["luas_genangan", "luas_lahan", "luas_terbakar"].includes(k) && v !== null && v !== undefined) {
+            parsed[k] = String(v).replace('.', ',');
+          } else {
+            parsed[k] = v;
+          }
         }
       });
       setDetailData(parsed);
@@ -640,11 +644,25 @@ export default function EditDetailPage() {
     if (jenisBencana === "banjir") {
       const luas = detailData.luas_genangan;
       if (luas !== undefined && luas !== null && luas !== "") {
-        const num = Number(luas);
+        const num = Number(String(luas).replace(',', '.'));
         if (isNaN(num) || num <= 0) {
           alert("Estimasi Luas Genangan harus lebih besar dari 0.");
           return;
         }
+      }
+    }
+    if (detailData.luas_lahan !== undefined && detailData.luas_lahan !== null && detailData.luas_lahan !== "") {
+      const num = Number(String(detailData.luas_lahan).replace(',', '.'));
+      if (isNaN(num) || num < 0) {
+        alert("Luas Lahan Terdampak tidak valid.");
+        return;
+      }
+    }
+    if (detailData.luas_terbakar !== undefined && detailData.luas_terbakar !== null && detailData.luas_terbakar !== "") {
+      const num = Number(String(detailData.luas_terbakar).replace(',', '.'));
+      if (isNaN(num) || num < 0) {
+        alert("Estimasi Luas Lahan Terbakar tidak valid.");
+        return;
       }
     }
     if (jenisBencana === "tanah_longsor") {
@@ -709,7 +727,15 @@ export default function EditDetailPage() {
     });
 
     Object.keys(detailData).forEach(k => {
-      addDiff(k, laporan.detail?.[k], detailData[k]);
+      let oldV = laporan.detail?.[k];
+      let newV = detailData[k];
+      if (["luas_genangan", "luas_lahan", "luas_terbakar"].includes(k)) {
+        const oldNum = oldV !== null && oldV !== undefined && oldV !== "" ? Number(String(oldV).replace(',', '.')) : null;
+        const newNum = newV !== null && newV !== undefined && newV !== "" ? Number(String(newV).replace(',', '.')) : null;
+        addDiff(k, oldNum, newNum);
+      } else {
+        addDiff(k, oldV, newV);
+      }
     });
 
     const oldFLabels = laporan.fasilitas_terdampak || [];
@@ -753,9 +779,16 @@ export default function EditDetailPage() {
     const newVal: Record<string, any> = {};
 
     const addDiff = (key: string, oldV: any, newV: any) => {
-      const vOld = Array.isArray(oldV) ? oldV.sort().join(",") : String(oldV ?? "");
-      const vNew = Array.isArray(newV) ? newV.sort().join(",") : String(newV ?? "");
+      let vOld = Array.isArray(oldV) ? oldV.sort().join(",") : String(oldV ?? "");
+      let vNew = Array.isArray(newV) ? newV.sort().join(",") : String(newV ?? "");
       
+      if (["luas_genangan", "luas_lahan", "luas_terbakar"].includes(key)) {
+        const oldNum = oldV !== null && oldV !== undefined && oldV !== "" ? Number(String(oldV).replace(',', '.')) : "";
+        const newNum = newV !== null && newV !== undefined && newV !== "" ? Number(String(newV).replace(',', '.')) : "";
+        vOld = String(oldNum);
+        vNew = String(newNum);
+      }
+
       if (vOld !== vNew && !(vOld === "" && vNew === "")) {
         changed.push(key);
         oldVal[key] = Array.isArray(oldV) ? oldV : (oldV ?? null);
@@ -827,7 +860,15 @@ export default function EditDetailPage() {
       fd.append("longitude", String(reqLng));
       fd.append("korban", JSON.stringify(korban));
       fd.append("kerusakan", JSON.stringify(kerusakan));
-      fd.append("detail_bencana", JSON.stringify(detailData));
+      const cleanedDetail = { ...detailData };
+      ["luas_genangan", "luas_lahan", "luas_terbakar"].forEach(k => {
+        if (typeof cleanedDetail[k] === "string") {
+          const dotVal = cleanedDetail[k].replace(',', '.');
+          cleanedDetail[k] = dotVal !== "" ? Number(dotVal) : null;
+        }
+      });
+
+      fd.append("detail_bencana", JSON.stringify(cleanedDetail));
       fd.append("fasilitas_terdampak", JSON.stringify(fasilitas));
       fd.append("kebutuhan_logistik", JSON.stringify(logistik));
       fd.append("deleted_foto_ids", JSON.stringify(deletedFotoIds));
@@ -1081,29 +1122,50 @@ export default function EditDetailPage() {
                               </div>
                             )}
                             {(field.type === "text" || field.type === "number") && (
-                              <input
-                                type={field.type === "number" ? "number" : "text"}
-                                min={field.type === "number" ? 0 : undefined}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-                                value={detailData[field.name] ?? ""}
-                                onChange={e => {
-                                  let val = e.target.value;
-                                  if (field.name === "dimensi_longsor") {
-                                    val = val.replace(/[^0-9xX., ]/g, '');
-                                  } else if (field.type === "number") {
-                                    val = val.replace(/[^0-9]/g, '');
-                                    const slicedVal = val.slice(0, 9);
-                                    let cleanVal = slicedVal;
-                                    if (cleanVal !== "") {
-                                      cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
-                                    }
-                                    val = cleanVal;
+                              <div className="w-full">
+                                <input
+                                  type="text"
+                                  inputMode={field.type === "number"
+                                    ? (["luas_genangan", "luas_lahan", "luas_terbakar"].includes(field.name) ? "decimal" : "numeric")
+                                    : undefined
                                   }
-                                  setDetailData(p => ({ ...p, [field.name]: val }));
-                                }}
-                                onKeyDown={field.type === "number" ? (e) => { if (["e", "E", "+", "-", ".", ","].includes(e.key)) e.preventDefault(); } : undefined}
-                                placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
-                              />
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                  value={detailData[field.name] ?? ""}
+                                  onChange={e => {
+                                    let val = e.target.value;
+                                    if (field.name === "dimensi_longsor") {
+                                      val = val.replace(/[^0-9xX., ]/g, '');
+                                    } else if (field.type === "number") {
+                                      if (["luas_genangan", "luas_lahan", "luas_terbakar"].includes(field.name)) {
+                                        // Blokir huruf, allow digit dan koma/titik. Konvert titik ke koma.
+                                        val = val.replace(/\./g, ',');
+                                        val = val.replace(/[^0-9,]/g, '');
+                                        // Maksimal satu koma
+                                        const parts = val.split(',');
+                                        if (parts.length > 2) {
+                                          val = parts[0] + ',' + parts.slice(1).join('');
+                                        }
+                                      } else {
+                                        val = val.replace(/[^0-9]/g, '');
+                                        const slicedVal = val.slice(0, 9);
+                                        let cleanVal = slicedVal;
+                                        if (cleanVal !== "") {
+                                          cleanVal = cleanVal.replace(/^0+(?=\d)/, '');
+                                        }
+                                        val = cleanVal;
+                                      }
+                                    }
+                                    setDetailData(p => ({ ...p, [field.name]: val }));
+                                  }}
+                                  placeholder={field.type === "number" ? "0" : "Masukkan nilai..."}
+                                />
+                                {field.type === "number" && ["luas_genangan", "luas_lahan", "luas_terbakar"].includes(field.name) && (
+                                  <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-medium">
+                                    <span className="material-symbols-outlined text-sm text-blue-500">info</span>
+                                    * Contoh format input: 1,5 (gunakan koma untuk angka desimal)
+                                  </p>
+                                )}
+                              </div>
                             )}
                             {showOther && field.otherName && (
                               <input type="text" className="mt-2 w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-400 outline-none"

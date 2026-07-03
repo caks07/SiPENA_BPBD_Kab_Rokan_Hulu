@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     Route::get('/laporan', [LaporanController::class, 'index']);
+    Route::post('/laporan/bulk-restore', [LaporanController::class, 'bulkRestore']);
+    Route::post('/laporan/bulk-force-delete', [LaporanController::class, 'bulkForceDelete']);
     Route::get('/laporan/{id}', [LaporanController::class, 'show']);
     Route::put('/laporan/{id}', [LaporanController::class, 'update']);
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy']);
@@ -54,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ─── Admin-only Routes ───────────────────────────────────────────────────
     Route::middleware('admin.role')->prefix('admin')->group(function () {
+        // Log Aktivitas
+        Route::get('/activity-logs', [AdminAccountController::class, 'activityLogs']);
+
         // Manajemen Akun Dashboard
         Route::get('/accounts', [AdminAccountController::class, 'index']);
         Route::post('/accounts', [AdminAccountController::class, 'store']);

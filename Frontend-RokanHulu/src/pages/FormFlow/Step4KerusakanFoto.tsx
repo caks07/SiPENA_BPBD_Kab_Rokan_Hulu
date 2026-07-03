@@ -169,7 +169,10 @@ export default function Step4KerusakanFoto() {
       cleaned[k] = 0;
     });
     for (const k in data) {
-      const v = data[k];
+      let v = data[k];
+      if (typeof v === "string" && ["luas_genangan", "luas_lahan", "luas_terbakar"].includes(k)) {
+        v = v.replace(',', '.');
+      }
       if (v === "" || v === null || v === undefined) {
         if (!defaultNumericKeys.includes(k)) {
           cleaned[k] = null;

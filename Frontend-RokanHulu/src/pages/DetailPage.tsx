@@ -270,7 +270,7 @@ function DetailBencanaCard({ jenis, detail, options }: { jenis: string; detail: 
 export default function DetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const queryClient = useQueryClient();
 
   const handleKembali = () => {
@@ -400,9 +400,9 @@ export default function DetailPage() {
 
 
   // Role-based visibility
-  // operator: cannot update status, cannot print
   // pimpinan: read only (cannot update status)
-  const canUpdateStatus = role !== "pimpinan" && role !== "operator";
+  const isReportOwner = role === "admin" || role === "admin_kab" || (role === "operator" && String(laporan?.kecamatan_id) === String(user?.kecamatan_id));
+  const canUpdateStatus = role !== "pimpinan" && isReportOwner;
   const canPrint = role !== "operator";
 
   const handlePrint = () => {
